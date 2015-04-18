@@ -1,16 +1,16 @@
 First, copy table from Excel. Then to read data:  
-> sf <- read.table(file = "clipboard", sep = "\t", header=TRUE)  
-> sf
+> taxas <- read.table(file = "clipboard", sep = "\t", header=TRUE)  
+> taxas
 
  If you want to view the data  
-> edit(sf)
+> edit(taxas)
 
 **Correlation analysis**  
-> cor(sf[4:14])   
+> cor(taxas[6:16])   
 *Omit column 1 because it contains participant id numbers*  
 
 **Shows significance**  
-> cor.test(sf$agonismo, sf$pluviom)
+> cor.test(taxas$agonismo, taxas$pluviom, method = c("spearman"))
 
 **Differents types of correlation tests**
 > cor.test(x, y,
@@ -32,7 +32,7 @@ First, copy table from Excel. Then to read data:
 *logical: if true, a continuity correction is used for Kendall's tau and Spearman's rho when not computed exactly.*  
 
 ## Regression analyses, unstandardized
-> model2 <- lm(sf$agonismo ~ sf$pluviom)  
+> model2 <- lm(taxas$agonismo ~ taxas$pluviom)  
 > summary(model2)  
 > plot(sf$endurance ~ sf$activeyears, main = "Scatterplot", ylab = "agonismo", xlab = "pluviom")  
 
