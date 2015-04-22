@@ -1,0 +1,10 @@
+
+## Create two subsets of data: *One for the high productivity and another for the observations at time of low productivity*
+freqs.A = subset(freqs, freqs$Produtividade == "Alta")
+freqs.B = subset(freqs, freqs$Produtividade == "Baixa")
+freqs.S = subset(freqs, freqs$Est2 == "Seca")
+freqs.C = subset(freqs, freqs$Est2 == "Chuvosa")
+
+# Independent t-test
+# Compare the variation in Locomotion frequencies in the two subsets.
+t.test(freqs.A$LOC, freqs.B$LOC, var.equal = T)
