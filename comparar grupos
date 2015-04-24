@@ -1,13 +1,48 @@
 
 ## Create two subsets of data: *One for the high productivity and another for the observations at time of low productivity*
-freqs.A = subset(freqs, freqs$Produtividade == "Alta")
-freqs.B = subset(freqs, freqs$Produtividade == "Baixa")
-freqs.S = subset(freqs, freqs$Est2 == "Seca")
-freqs.C = subset(freqs, freqs$Est2 == "Chuvosa")
+> freqs.A = subset(freqs, freqs$Produtividade == "Alta")
+> freqs.B = subset(freqs, freqs$Produtividade == "Baixa")
+> freqs.S = subset(freqs, freqs$Est2 == "Seca")
+> freqs.C = subset(freqs, freqs$Est2 == "Chuvosa")
 
 ## Teste de normalidade Shapiro-Wilk
-shapiro.test(JP$freq_fournier)
+> shapiro.test(JP$freq_fournier)
 
-# Independent t-test
+# Independent t-test #
 # Compare the variation in Locomotion frequencies in the two subsets.
-t.test(freqs.A$LOC, freqs.B$LOC, var.equal = T)
+> t.test(freqs.A$LOC, freqs.B$LOC, var.equal = T)
+
+## Inserir dados no R no formato abaixo:
+> counts <- read.table(file = "clipboard", sep = "\t", header=TRUE)
+> counts
+                Sex.et        Partes.cons Freq
+1               Fêmea              Frutas 25.0
+2    Fêmea com filhote             Frutas 15.9
+3        Fêmea gravida             Frutas  0.0
+4              Juvenil             Frutas 22.4
+5  Juvenil com filhote             Frutas 16.7
+6         Macho adulto             Frutas 22.3
+7            Subadulto             Frutas 31.2
+8               Fêmea          Artrópodes  7.5
+9    Fêmea com filhote         Artrópodes  8.4
+10       Fêmea gravida         Artrópodes 10.3
+11             Juvenil         Artrópodes  9.2
+12 Juvenil com filhote         Artrópodes 16.7
+13        Macho adulto         Artrópodes 12.2
+14           Subadulto         Artrópodes 16.3
+
+# Criar tabela de contigência #
+> xtabs(Freq ~ Partes.cons+Sex.et, data=counts)
+                    Sex.et
+Partes.cons          Fêmea  Fêmea com filhote Fêmea gravida Juvenil Juvenil com filhote Macho adulto Subadulto
+  Artrópodes            7.5               8.4          10.3     9.2                16.7         12.2      16.3
+  Cana-de-açúcar       51.9              72.0          55.2    51.9                66.7         55.6      37.1
+  Frutas               25.0              15.9           0.0    22.4                16.7         22.3      31.2
+  Partes vegetativas    1.3               2.8           0.0     7.2                 0.0          8.3       9.7
+  Resina               14.4               0.9          34.5     9.1                 0.0          0.2       1.6
+  Vertebrados           0.0               0.0           0.0     0.2                 0.0          1.0       3.6
+  
+  *Lembrar de nomear para que possa ser chamada no futuro*
+  > tabelac <- xtabs(Freq ~ Partes.cons+Sex.et, data=counts)
+
+
