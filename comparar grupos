@@ -47,3 +47,13 @@ Partes.cons          Fêmea  Fêmea com filhote Fêmea gravida Juvenil Juvenil c
 
 # Teste chi-quadrado #
 > chisq.test(tabelac)
+
+*Deu significante? Descobrir quais resultados estão tornando a diferença significativa (causando a interferência)*
+> chires <- chisq.test(tabelac)
+
+**Resíduo ajustado (igual ao esperado: Hipótese nula): -3=< Raj >= +3
+> (chires$observed - chires$expected)/sqrt(chires$expected *
+((1 - rowSums(chires$observed)/sum(chires$observed)) 
+%*% t(1 - colSums(chires$observed)/sum(chires$observed))))
+
+http://www.daleidoscope.com/chispssr/
