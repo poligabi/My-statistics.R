@@ -45,4 +45,5 @@ Partes.cons          Fêmea  Fêmea com filhote Fêmea gravida Juvenil Juvenil c
   *Lembrar de nomear para que possa ser chamada no futuro*
   > tabelac <- xtabs(Freq ~ Partes.cons+Sex.et, data=counts)
 
-
+# Teste chi-quadrado #
+> chisq.test(tabelac)
