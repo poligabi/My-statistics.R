@@ -9,6 +9,9 @@ First, copy table from Excel. Then to read data:
 > cor(taxas[6:16])   
 *Omit column 1 because it contains participant id numbers*  
 
+## Teste de normalidade Shapiro-Wilk
+> shapiro.test(JP$freq_fournier)
+
 **Shows significance**  
 > cor.test(taxas$agonismo, taxas$pluviom, method = c("spearman"))
 
