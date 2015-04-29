@@ -63,14 +63,35 @@ Partes.cons          Fêmea  Fêmea com filhote Fêmea gravida Juvenil Juvenil c
 ((1 - rowSums(chires$observed)/sum(chires$observed)) 
 %*% t(1 - colSums(chires$observed)/sum(chires$observed))))
 
-# Create three subsets of data:
-freqs.se = subset(freqs, freqs$Est3 == "Seca")
-freqs.ch = subset(freqs, freqs$Est3 == "Chuvosa")
-freqs.um = subset(freqs, freqs$Est3 == "Umida")
+
+# One-way ANOVA # testing Value against Group
+
+##Ex. data:
+Group <- factor(c("A","A","A","A","A","B","B","B","B","B","C","C","C","C","C"))
+Value <- c(1,2,4,1,1,2,2,3,3,4,4,2,3,4,4,3,4,5,3,5,5,3,4,6)
+#Run a one-way ANOVA test. Your independent variable is Group, and dependent variable is Value.
+aov <- aov(Value ~ Group, data)
+summary(aov)
+
+> ov <- aov(freqs$LOC ~ freqs$Est3, freqs)
+> summary(ov)  # mostra o resultado
+
+## With the model.tables() function, you can take a look at the results for the individual levels of the factors.
+> model.tables(ov, type='effects') # how much effect every one had
+> model.tables(ov, type='means') # the modeled means per group and the overall mean
+
+## How to look at individual differences in data
+> TukeyHSD(ov)  or  TukeyHSD(aov(freqs$LOC ~ freqs$Est3, freqs)) # that gives:
+ * difference between the means; 
+ * lower and upper level of the 95 percent confidence interval around that mean difference.
+ * p-value that tells you whether this difference is significantly different from zero.
+ 
+ ## Plot results
+ > comparisons <- TukeyHSD(ov)
+ > plot(comparisons, las=1)
+
 
 # Nonparametric multiple comparison #
 pairwise.wilcox.test(injuries,month)
 
-> estacao3 <- c("freqs.se","freqs.ch","freqs.um")
-> pairwise.wilcox.test(freqs$LOC,estacao3)
-
+> pairwise.wilcox.test(freqs$LOC,freqs$Est3)
