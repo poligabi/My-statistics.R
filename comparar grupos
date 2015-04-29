@@ -8,6 +8,13 @@
 ## Teste de normalidade Shapiro-Wilk
 > shapiro.test(JP$freq_fournier)
 
+# Dependent t-tests
+## Compare pre and post scores in the control group
+> t.test(wm.c$post, wm.c$pre, paired = T)
+## Next, compare pre and post scores in the training groups
+> t.test(wm.t$post, wm.t$pre, paired = T)
+
+
 # Independent t-test #
 # Compare the variation in Locomotion frequencies in the two subsets.
 > t.test(freqs.A$LOC, freqs.B$LOC, var.equal = T)
@@ -51,9 +58,19 @@ Partes.cons          Fêmea  Fêmea com filhote Fêmea gravida Juvenil Juvenil c
 *Deu significante? Descobrir quais resultados estão tornando a diferença significativa (causando a interferência)*
 > chires <- chisq.test(tabelac)
 
-**Resíduo ajustado (igual ao esperado: Hipótese nula): -3=< Raj >= +3
+**Resíduo ajustado (igual ao esperado: Hipótese nula): -3=< Raj >= +3 (referência)[http://www.daleidoscope.com/chispssr/]
 > (chires$observed - chires$expected)/sqrt(chires$expected *
 ((1 - rowSums(chires$observed)/sum(chires$observed)) 
 %*% t(1 - colSums(chires$observed)/sum(chires$observed))))
 
-http://www.daleidoscope.com/chispssr/
+# Create three subsets of data:
+freqs.se = subset(freqs, freqs$Est3 == "Seca")
+freqs.ch = subset(freqs, freqs$Est3 == "Chuvosa")
+freqs.um = subset(freqs, freqs$Est3 == "Umida")
+
+# Nonparametric multiple comparison #
+pairwise.wilcox.test(injuries,month)
+
+> estacao3 <- c("freqs.se","freqs.ch","freqs.um")
+> pairwise.wilcox.test(freqs$LOC,estacao3)
+
