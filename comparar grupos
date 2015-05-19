@@ -64,7 +64,8 @@ Partes.cons          Fêmea  Fêmea com filhote Fêmea gravida Juvenil Juvenil c
 %*% t(1 - colSums(chires$observed)/sum(chires$observed))))
 
 
-# One-way ANOVA # testing Value against Group
+# One-way ANOVA # 
+## testing Value against Group
 
 ##Ex. data:
 Group <- factor(c("A","A","A","A","A","B","B","B","B","B","C","C","C","C","C"))
@@ -85,7 +86,7 @@ summary(aov)
  * difference between the means; 
  * lower and upper level of the 95 percent confidence interval around that mean difference.
  * p-value that tells you whether this difference is significantly different from zero.
- 
+
  ## Plot results
  > comparisons <- TukeyHSD(ov)
  > plot(comparisons, las=1)
