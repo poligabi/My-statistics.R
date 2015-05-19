@@ -1,9 +1,16 @@
 
-## Create two subsets of data: *One for the high productivity and another for the observations at time of low productivity*
+## Create two or more subsets of data: *One for the high productivity and another for the observations at time of low productivity*
 > freqs.A = subset(freqs, freqs$Produtividade == "Alta")
 > freqs.B = subset(freqs, freqs$Produtividade == "Baixa")
 > freqs.S = subset(freqs, freqs$Est2 == "Seca")
 > freqs.C = subset(freqs, freqs$Est2 == "Chuvosa")
+> sx.MA = subset(freqs, freqs$Sexo_etaria == "macho_ad")
+> sx.FF = subset(freqs, freqs$Sexo_etaria == "femea_cfilh")
+> sx.F = subset(freqs, freqs$Sexo_etaria == "femea")
+> sx.FG = subset(freqs, freqs$Sexo_etaria == "femea_grav")
+> sx.S = subset(freqs, freqs$Sexo_etaria == "subadulto")
+> sx.J = subset(freqs, freqs$Sexo_etaria == "juvenil")
+> sx.JF = subset(freqs, freqs$Sexo_etaria == "juvenil_cfilh")
 
 ## Teste de normalidade Shapiro-Wilk
 > shapiro.test(JP$freq_fournier)
