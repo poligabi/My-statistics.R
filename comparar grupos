@@ -71,6 +71,21 @@ Partes.cons          Fêmea  Fêmea com filhote Fêmea gravida Juvenil Juvenil c
 %*% t(1 - colSums(chires$observed)/sum(chires$observed))))
 
 
+                  contexto esperado observado
+1                  Brincar    6.103         1
+2           Cana-de-açúcar   68.210       181
+3             Comer frutas   15.890        36
+4 Forrageio dentro da mata   35.990        94
+5                Locomoção   66.906        40
+
+*insere dado observado*
+> agon <- c(brincar=1,cana=181,frutas=36,formata=94,loc=40)
+
+*p é a probabilidade esperada no chi-quadrado, pode ser em fração, por isso a soma tem que ser 1
+> chisq.test(agon,p=c(1.7,19,12.3,32.4,18.9))
+Erro em chisq.test(agon, p = c(1.7, 19, 12.3, 32.4, 18.9)) : 
+  probabilidades devem somar 1.
+
 # One-way ANOVA # 
 ## testing Value against Group
 
