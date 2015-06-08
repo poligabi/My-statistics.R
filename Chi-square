@@ -1,0 +1,65 @@
+## Inserir dados no R no formato abaixo:
+> counts <- read.table(file = "clipboard", sep = "\t", header=TRUE)
+> counts
+                Sex.et        Partes.cons Freq
+1               Fêmea              Frutas 25.0
+2    Fêmea com filhote             Frutas 15.9
+3        Fêmea gravida             Frutas  0.0
+4              Juvenil             Frutas 22.4
+5  Juvenil com filhote             Frutas 16.7
+6         Macho adulto             Frutas 22.3
+7            Subadulto             Frutas 31.2
+8               Fêmea          Artrópodes  7.5
+9    Fêmea com filhote         Artrópodes  8.4
+10       Fêmea gravida         Artrópodes 10.3
+11             Juvenil         Artrópodes  9.2
+12 Juvenil com filhote         Artrópodes 16.7
+13        Macho adulto         Artrópodes 12.2
+14           Subadulto         Artrópodes 16.3
+
+# Criar tabela de contigência #
+> xtabs(Freq ~ Partes.cons+Sex.et, data=counts)
+                    Sex.et
+Partes.cons          Fêmea  Fêmea com filhote Fêmea gravida Juvenil Juvenil com filhote Macho adulto Subadulto
+  Artrópodes            7.5               8.4          10.3     9.2                16.7         12.2      16.3
+  Cana-de-açúcar       51.9              72.0          55.2    51.9                66.7         55.6      37.1
+  Frutas               25.0              15.9           0.0    22.4                16.7         22.3      31.2
+  Partes vegetativas    1.3               2.8           0.0     7.2                 0.0          8.3       9.7
+  Resina               14.4               0.9          34.5     9.1                 0.0          0.2       1.6
+  Vertebrados           0.0               0.0           0.0     0.2                 0.0          1.0       3.6
+  
+  *Lembrar de nomear para que possa ser chamada no futuro*
+  > tabelac <- xtabs(Freq ~ Partes.cons+Sex.et, data=counts)
+
+# Teste chi-quadrado #
+> chisq.test(tabelac)
+
+*Deu significante? Descobrir quais resultados estão tornando a diferença significativa (causando a interferência)*
+> chires <- chisq.test(tabelac)
+
+**Resíduo ajustado (igual ao esperado: Hipótese nula): -3=< Raj >= +3 (referência)[http://www.daleidoscope.com/chispssr/]
+> (chires$observed - chires$expected)/sqrt(chires$expected *
+((1 - rowSums(chires$observed)/sum(chires$observed)) 
+%*% t(1 - colSums(chires$observed)/sum(chires$observed))))
+
+
+                  contexto esperado observado
+1                  Brincar    6.103         1
+2           Cana-de-açúcar   68.210       181
+3             Comer frutas   15.890        36
+4 Forrageio dentro da mata   35.990        94
+5                Locomoção   66.906        40
+
+*insere dado observado*
+> agon <- c(brincar=1,cana=181,frutas=36,formata=94,loc=40)
+
+*p é a probabilidade esperada no chi-quadrado, pode ser em fração, por isso a soma tem que ser 1
+> chisq.test(agon,p=c(1.7,19,12.3,32.4,18.9))
+Erro em chisq.test(agon, p = c(1.7, 19, 12.3, 32.4, 18.9)) : 
+  probabilidades devem somar 1.
+  
+> your.chi = chisq.test(observed.data, p=expected.values, rescale.p=T)
+* To see the observed values,  the expected values, the residuals type:
+> your.chi$obs
+> your.chi$exp
+> your.chi$res
