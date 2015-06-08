@@ -85,6 +85,12 @@ Partes.cons          Fêmea  Fêmea com filhote Fêmea gravida Juvenil Juvenil c
 > chisq.test(agon,p=c(1.7,19,12.3,32.4,18.9))
 Erro em chisq.test(agon, p = c(1.7, 19, 12.3, 32.4, 18.9)) : 
   probabilidades devem somar 1.
+  
+> your.chi = chisq.test(observed.data, p=expected.values, rescale.p=T)
+* To see the observed values,  the expected values, the residuals type:
+> your.chi$obs
+> your.chi$exp
+> your.chi$res
 
 # One-way ANOVA # 
 ## testing Value against Group
