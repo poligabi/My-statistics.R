@@ -1,3 +1,5 @@
+#Chi-square cross-tabs#
+
 ## Inserir dados no R no formato abaixo:
 > counts <- read.table(file = "clipboard", sep = "\t", header=TRUE)
 > counts
@@ -42,21 +44,34 @@ Partes.cons          Fêmea  Fêmea com filhote Fêmea gravida Juvenil Juvenil c
 ((1 - rowSums(chires$observed)/sum(chires$observed)) 
 %*% t(1 - colSums(chires$observed)/sum(chires$observed))))
 
+# CHI SQUARE GOODNESS OF FIT TEST #
 
-                  contexto esperado observado
-1                  Brincar    6.103         1
-2           Cana-de-açúcar   68.210       181
-3             Comer frutas   15.890        36
-4 Forrageio dentro da mata   35.990        94
-5                Locomoção   66.906        40
+                       f esperado	n observado
+Brincar	                    0.02	1
+Cana-de-açúcar	            0.26	181
+Comer frutas	              0.14	36
+Forrageio dentro da mata  	0.36	94
+Locomoção                 	0.22	40
+
 
 *insere dado observado*
 > agon <- c(brincar=1,cana=181,frutas=36,formata=94,loc=40)
+> esp <- c(0.02,0.26,0.14,0.36,0.22)
 
-*p é a probabilidade esperada no chi-quadrado, pode ser em fração, por isso a soma tem que ser 1
-> chisq.test(agon,p=c(1.7,19,12.3,32.4,18.9))
-Erro em chisq.test(agon, p = c(1.7, 19, 12.3, 32.4, 18.9)) : 
+> chisq.test(agon, p=esp) -> agon.chi
+  Chi-squared test for given probabilities
+
+data:  agon
+X-squared = 122.7959, df = 4, p-value < 2.2e-16
+
+*p é a probabilidade esperada no chi-quadrado, pode ser em fração, mas a soma tem que ser 1
+> chisq.test(agon,p=c(0.02,0.26,0.14,0.36,0.21))
+Erro em chisq.test(agon, p = c(0.02, 0.26, 0.14, 0.36, 0.21)) : 
   probabilidades devem somar 1.
+> chisq.test(agon,p=c(0,1/4,1/7,1/3,1/5))
+Erro em chisq.test(agon, p = c(0, 1/4, 1/7, 1/3, 1/5)) : 
+  probabilidades devem somar 1.
+  
   
 > your.chi = chisq.test(observed.data, p=expected.values, rescale.p=T)
 * To see the observed values,  the expected values, the residuals type:
