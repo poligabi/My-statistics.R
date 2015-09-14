@@ -3,7 +3,7 @@
 ## Inserir dados no R no formato abaixo:
 > counts <- read.table(file = "clipboard", sep = "\t", header=TRUE)
 > counts
-                Sex.et        Partes.cons Freq
+                Sex.et        Partes.cons  N
 1               Fêmea              Frutas 25.0
 2    Fêmea com filhote             Frutas 15.9
 3        Fêmea gravida             Frutas  0.0
@@ -20,7 +20,7 @@
 14           Subadulto         Artrópodes 16.3
 
 # Criar tabela de contigência #
-> xtabs(Freq ~ Partes.cons+Sex.et, data=counts)
+> xtabs(n ~ Partes.cons+Sex.et, data=counts)
                     Sex.et
 Partes.cons          Fêmea  Fêmea com filhote Fêmea gravida Juvenil Juvenil com filhote Macho adulto Subadulto
   Artrópodes            7.5               8.4          10.3     9.2                16.7         12.2      16.3
@@ -31,7 +31,7 @@ Partes.cons          Fêmea  Fêmea com filhote Fêmea gravida Juvenil Juvenil c
   Vertebrados           0.0               0.0           0.0     0.2                 0.0          1.0       3.6
   
   *Lembrar de nomear para que possa ser chamada no futuro*
-  > tabelac <- xtabs(Freq ~ Partes.cons+Sex.et, data=counts)
+  > tabelac <- xtabs(n ~ Partes.cons+Sex.et, data=counts)
 
 # Teste chi-quadrado #
 > chisq.test(tabelac)
