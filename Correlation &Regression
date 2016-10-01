@@ -41,6 +41,16 @@ First, copy table from Excel. Then to read data:
 
 
 
+model5 <- lm(freqs$V5m ~ freqs$FAI + freqs$Pluviometria)
+> summary(model5)
+
+modelA <- lm(taxas$cons_artrop ~ taxas$FAI.m + taxas$pluviom + taxas$peso_artrop)
+> summary(modelA)
+
+modelF2 <- lm(taxas$cons_frutas ~ taxas$pluviom + taxas$peso_artrop + taxas$FAI.top10 + taxas$peso_frutas)
+> summary(modelF2)
+
+
 
 
 
