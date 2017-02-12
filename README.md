@@ -6,3 +6,8 @@
 Copiar e colar tabela no R:
 > x <- read.table(file = "clipboard", sep = "\t", header=TRUE)  
 > x
+
+Google do R : http://rseek.org/
+Directory of R packages by topic area : https://cran.r-project.org/web/views/
+Search tool for R packages on CRAN : https://mran.microsoft.com/packages/
+Guide to the best tools, resources and technologies for data visualization: http://dataviz.tools/
