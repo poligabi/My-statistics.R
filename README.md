@@ -12,7 +12,7 @@ Directory of R packages by topic area : https://cran.r-project.org/web/views/
 Search tool for R packages on CRAN : https://mran.microsoft.com/packages/
 Guide to the best tools, resources and technologies for data visualization: http://dataviz.tools/
 
-+Livros de R:
+## +Livros de R ##
 Practical Regression and Anova using R : https://cran.r-project.org/doc/contrib/Faraway-PRA.pdf
 R-intro :  https://cran.r-project.org/doc/manuals/R-intro.pdf
 R-Beginners :  https://cran.r-project.org/doc/contrib/Paradis-rdebuts_en.pdf
