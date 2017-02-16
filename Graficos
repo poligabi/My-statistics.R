@@ -1,28 +1,36 @@
-Grafico barra normal:
+
 https://plot.ly/r/bar-charts/ (grouped bar)
 https://rpubs.com/brouwern/means (error bar)
 http://triadsou.hatenablog.com/entry/2017/01/22/033635 (Plugin legal)
 
-Behaviors <- c("LOC" , "FOR" , "ING" , "MAC" , "SOC" , "VIG" , "REST")
+Behav <- c("LOC" , "FOR" , "ING" , "MAC" , "SOC" , "VIG" , "REST")
 > Humid <- c(0.3052, 0.2172, 0.3226, 0.03118, 0.0765, 0.01787, 0.0248)
 > Rainy <- c(0.2843, 0.2803, 0.2605, 0.04697, 0.0673, 0.0217, 0.0239)
 > Dry <- c(0.1527, 0.4243, 0.2665, 0.03695, 0.07989, 0.0168, 0.01743)
-> data <- data.frame(Behaviors, Humid, Rainy, Dry)
+> df <- data.frame(Behav, Humid, Rainy, Dry)
 
-> error.bar.length.h <- c(0.015, 0.015, 0.017, 0.005, 0.012, 0.005, 0.006)
-> error.bar.length.r <- c(0.011, 0.014, 0.012, 0.005, 0.008, 0.004, 0.004)
-> error.bar.length.d <- c(0.012, 0.018, 0.015, 0.005, 0.011, 0.004, 0.004)
+> err.length.h <- c(0.015, 0.015, 0.017, 0.005, 0.012, 0.005, 0.006)
+> err.length.r <- c(0.011, 0.014, 0.012, 0.005, 0.008, 0.004, 0.004)
+> err.length.d <- c(0.012, 0.018, 0.015, 0.005, 0.011, 0.004, 0.004)
+
+## Grafico erro simples (x = Behaviors, y = Relative frequency)
+df <- data.frame(Behav, Humid, err.length.h)
+qplot(df$Behav, df$Humid)+geom_errorbar(aes(x=Behav, ymin= Humid-err.length.h, ymax=Humid+err.length.h), width=0.25)
+
+## Grouped error-bar (x= independente , y= independente, z= diferentes estações)
 
 
-> p <- plot_ly(data, x = ~Behaviors, y = ~Humid, type = 'bar', name = 'Humid')
+### tentativas:
+> p <- plot_ly(data, x = ~Behav, y = ~Humid, type = 'bar', name = 'Humid')
 +   add_trace(y = ~Rainy, name = 'Rainy') 
 +   add_trace(y = ~Dry, name = 'Dry') 
 +   layout(yaxis = list(title = 'Count'), barmode = 'group')
 
-
+df <- data.frame(Behav, Humid, err.length.h)
 > errbar(x = c(1,2,3,4,5,6,7),  y = df$Humid, 
-+   yplus = df$Humid + df$error.bar.length.h, 
-+    ymin = df$Humid - df$error.bar.length.h, 
++   yplus = df$Humid + df$err.length.h, 
++    ymin = df$Humid - df$err.length.h, 
 +    xaxt = "n", xlim = (c(0.75, 7.25), 
-+    xlab = "Behaviors", ylab = "Relative frequency")
++    xlab = "Behav", ylab = "Relative frequency"))
+
 
