@@ -1,6 +1,9 @@
 
 http://triadsou.hatenablog.com/entry/2017/01/22/033635 (Plugin legal)
 
+library(Hmysc)
+library (ggplo2)
+
 Behav <- c("LOC" , "FOR" , "ING" , "MAC" , "SOC" , "VIG" , "REST")
 > Humid <- c(0.3052, 0.2172, 0.3226, 0.03118, 0.0765, 0.01787, 0.0248)
 > Rainy <- c(0.2843, 0.2803, 0.2605, 0.04697, 0.0673, 0.0217, 0.0239)
@@ -90,3 +93,14 @@ p + geom_bar(stat = "identity",
   labs(x = "Behaviors", y = "Relative frequency") +
   ggtitle("Variation of behaviors along the periods") +
   scale_fill_discrete(name = "Periods")
+
+#### Cores no R http://www.diegonogare.net/2015/09/trabalhando-com-cores-no-r/ ###
+
+install.packages("RColorBrewer")
+library(RColorBrewer)
+#Selecione cores que serão plotadas
+cores <- brewer.pal(10, "Greys")
+#Chame o gráfico
+barplot(a, col=cores)
+#Visualise as opções de paletas de cores
+display.brewer.all()
