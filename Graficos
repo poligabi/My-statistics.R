@@ -73,9 +73,9 @@ p + geom_bar(stat = "identity",
  
  ### outra ideia
  #copia e cola tabela de dados do excel
- myData <- 
+ myData <- read.table(file = "clipboard", sep = "\t", header=TRUE)
  
- #
+ # depois segue que nem [link] (https://datascienceplus.com/building-barplots-with-error-bars/)
 limits <- aes(ymax = myData$Frequency + myData$se,
               ymin = myData$Frequency - myData$se)
 
