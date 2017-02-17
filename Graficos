@@ -1,8 +1,8 @@
 
 http://triadsou.hatenablog.com/entry/2017/01/22/033635 (Plugin legal)
 
-library(Hmysc)
-library (ggplo2)
+library(Hmisc)
+library (ggplot2)
 
 Behav <- c("LOC" , "FOR" , "ING" , "MAC" , "SOC" , "VIG" , "REST")
 > Humid <- c(0.3052, 0.2172, 0.3226, 0.03118, 0.0765, 0.01787, 0.0248)
@@ -85,7 +85,7 @@ limits <- aes(ymax = myData$Frequency + myData$se,
 # Because the bars and errorbars have different widths
 # we need to specify how wide the objects we are dodging are
 p <- ggplot(data = myData, aes(x = factor(Behaviors), y = Frequency,
-               fill = factor(periods)))
+               fill = factor(Periods)))
 p + geom_bar(stat = "identity",
              position = position_dodge(0.9)) +
   geom_errorbar(limits, position = position_dodge(0.9),
@@ -100,7 +100,7 @@ install.packages("RColorBrewer")
 library(RColorBrewer)
 #Selecione cores que serão plotadas
 cores <- brewer.pal(10, "Greys")
-#Chame o gráfico
+#Chame o gráfico # essa opção o N é grande demais, R nao esta aceitando
 barplot(a, col=cores)
 #Visualise as opções de paletas de cores
 display.brewer.all()
