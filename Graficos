@@ -103,20 +103,20 @@ limits <- aes(ymax = myData$Frequency + myData$se,
 
 # Because the bars and errorbars have different widths
 # we need to specify how wide the objects we are dodging are
-p <- ggplot(data = myData, aes(x = factor(Behaviors), y = Frequency,
-               fill = factor(Periods)))
+p <- ggplot(data = myData, aes(x = factor(Periods), y = Frequency,
+               fill = factor(Behaviors)))
 p + geom_bar(stat = "identity", colour="black",
              position = position_dodge(0.9)) +
   geom_errorbar(limits, position = position_dodge(0.9),
                 width = 0.25) +
-  labs(x = "Behaviors", y = "Relative frequency") +
-  ggtitle("Variation of behaviors along the periods") +
-  scale_fill_discrete(name = "Periods") +
-  scale_fill_manual(values=c("#FFFFFF","#CCCCCC","#a6a6a6")) +
+  labs(x = "Periods", y = "Relative frequency") +
+  ggtitle("Activity budget") +
+  scale_fill_discrete(name = "Behaviors") +
+  scale_fill_manual(values=c("#080808","#393939","#7e7e7e","#bfbfbf","#e6e6e6","#FFFFFF")) +
   theme_bw()
   
 # esse final  removes the grey background
-# http://www.colorhexa.com/cccccc
+# variações de cinza:  http://www.colorhexa.com/cccccc
 
 
 #### Cores no R http://www.diegonogare.net/2015/09/trabalhando-com-cores-no-r/ ###
