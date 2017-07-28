@@ -69,12 +69,11 @@ library(ggplot2)
  #copia e cola tabela de dados do excel
  myData <- read.table(file = "clipboard", sep = "\t", header=TRUE)
  
- # depois segue que nem [link] (https://datascienceplus.com/building-barplots-with-error-bars/)
+ # depois define erros:
 limits <- aes(ymax = myData$Frequency + myData$se,
               ymin = myData$Frequency - myData$se)
 
-# Because the bars and errorbars have different widths
-# we need to specify how wide the objects we are dodging are
+# Because the bars and errorbars have different widths, we need to specify how wide the objects we are dodging are:
 p <- ggplot(data = myData, aes(x = factor(Periods), y = Frequency,
                fill = factor(Behaviors)))
 p + geom_bar(stat = "identity", colour="black",
@@ -87,8 +86,9 @@ p + geom_bar(stat = "identity", colour="black",
   scale_fill_manual(values=c("#080808","#393939","#7e7e7e","#bfbfbf","#e6e6e6","#FFFFFF")) +
   theme_bw()
   
-    # [theme_bw()] removes the grey background
-    # variações de cinza:  http://www.colorhexa.com/cccccc
+ # [theme_bw()] removes the grey background
+ # variações de cinza:  http://www.colorhexa.com/cccccc
+ # scale_y_continuous(limits=c(0,1), breaks=seq(0,1,0.2) :estabele o limite do eixo y (0 ate 1) e segunda parte as subdivisões do eixo
 
 #### Cores no R http://www.diegonogare.net/2015/09/trabalhando-com-cores-no-r/ ###
 
