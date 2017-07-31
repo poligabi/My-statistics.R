@@ -1,14 +1,22 @@
 
-Novo library(ggalt): https://rud.is/b/2017/02/15/ggalt-0-4-0-now-on-cran/
-
-http://triadsou.hatenablog.com/entry/2017/01/22/033635 (Plugin legal)
-
-Novos tipos de hitogramas: http://www.sthda.com/english/wiki/bar-plots-and-modern-alternatives
-
-
 library(Hmisc)
 library (ggplot2)
 
+## Tipos de graficos:
+
+ggplot()+geom_point(data=,aes(x=,y=),size=,color="",shape=)
+
+ggplot()+geom_line(data= data frame ,aes(x=,y=))
+
+ggplot(data=, aes(x=factor(), y =, fill =factor()))+ 
+  geom_bar(stat = "identity", colour="black", position = position_dodge(0.9)) +
+  geom_errorbar(limits, position = position_dodge(0.9), width = 0.25)
+
+## R colors: http://www.stat.columbia.edu/~tzheng/files/Rcolor.pdf
+## R shapes: http://sape.inf.usi.ch/quick-reference/ggplot2/shape
+
+
+#### Grafico erro simples (x = Behaviors, y = Relative frequency) ###
 Behav <- c("LOC" , "FOR" , "ING" , "MAC" , "SOC" , "VIG" , "REST")
 > Humid <- c(0.3052, 0.2172, 0.3226, 0.03118, 0.0765, 0.01787, 0.0248)
 > Rainy <- c(0.2843, 0.2803, 0.2605, 0.04697, 0.0673, 0.0217, 0.0239)
@@ -18,8 +26,6 @@ Behav <- c("LOC" , "FOR" , "ING" , "MAC" , "SOC" , "VIG" , "REST")
 > err.length.h <- c(0.015, 0.015, 0.017, 0.005, 0.012, 0.005, 0.006)
 > err.length.r <- c(0.011, 0.014, 0.012, 0.005, 0.008, 0.004, 0.004)
 > err.length.d <- c(0.012, 0.018, 0.015, 0.005, 0.011, 0.004, 0.004)
-
-#### Grafico erro simples (x = Behaviors, y = Relative frequency) ###
 
 df <- data.frame(Behav, Humid, err.length.h)
 qplot(df$Behav, df$Humid)+geom_errorbar(aes(x=Behav, ymin= Humid-err.length.h, ymax=Humid+err.length.h), width=0.25)
@@ -91,14 +97,14 @@ p + geom_bar(stat = "identity", colour="black",
  # scale_y_continuous(limits=c(0,1), breaks=seq(0,1,0.2) :estabele o limite do eixo y (0 ate 1) e segunda parte as subdivisões do eixo
 
 #### Cores no R http://www.diegonogare.net/2015/09/trabalhando-com-cores-no-r/ ###
+http://www.stat.columbia.edu/~tzheng/files/Rcolor.pdf
 
 ## Cores e edição de bar plots: http://www.sthda.com/english/wiki/ggplot2-barplots-quick-start-guide-r-software-and-data-visualization
 
-install.packages("RColorBrewer")
-library(RColorBrewer)
-#Selecione cores que serão plotadas
-cores <- brewer.pal(10, "Greys")
-#Chame o gráfico # essa opção o N é grande demais, R nao esta aceitando
-barplot(a, col=cores)
-#Visualise as opções de paletas de cores
-display.brewer.all()
+#### R shapes : http://sape.inf.usi.ch/quick-reference/ggplot2/shape
+
+Novo library(ggalt): https://rud.is/b/2017/02/15/ggalt-0-4-0-now-on-cran/
+
+http://triadsou.hatenablog.com/entry/2017/01/22/033635 (Plugin legal)
+
+Novos tipos de hitogramas: http://www.sthda.com/english/wiki/bar-plots-and-modern-alternatives
