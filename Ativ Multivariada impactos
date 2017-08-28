@@ -1,56 +1,248 @@
 #############################################################
 # Atividade final de disciplina de Estatistica Multivariada #
-# Ideia de protocolo para avaliar impactos ambientais
-##########################
+# Ideia de protocolo para avaliar impactos ambientais       #
+#############################################################
 
-#primeiro vou criar amostras de dados no R
+##
+#(0) primeiro vou criar amostras de dados no R e os objetos a serem 
 rnorm(n,media,desvio)
 
-setwd(C:/R/)
+as.data.frame(env[,2]) 
+#usa o as(mostre-me como) p R mostrar os dados em um colunas(data.frame) ao invés da forma de vetor(tudo em linhas)
+
+#(1) Sempre chamar minha área de trabalho e criar objetos com os arquivos de dados ambientais, espaciais e de espécies:
+setwd("C:/R/Multivariada")
+dir()
 ambi<-read.csv(" .csv", row.names=1)
 espa<-read.csv("
-sp<-read.csv("
+spe<-read.csv("
+fiqui<-amb[,]
 
-# Grafico d riqueza de especies por unidadea amostral espacial:
 library(vegan)
 
-# Add riqueza d sp.
+# Add objeto riqueza de sp.
 riqueza<-specnumber(spe) #função do pacote q calcula riqueza através dos dados brutos
 
-plot(spa$X, spa$Y, type="n", ylim=c(20,120),    #função concatenar foi usada p ...
+## Grafico d riqueza de especies por unidadea amostral espacial:
+plot(espa$X, espa$Y, type="n", ylim=c(20,120),    #função concatenar foi usada p ...
 xlab= "Coordenada X(km)", ylab= "Coordenada Y(km)", las=1) +
-lines(spa$X, spa$Y, col="blue4") +
-points(spa$X, spa$Y, cex=riqueza/3.5,pch=16, col="gray") +   #add círculos de riqueza (dividiu por 3.5 pois riqueza ficava muito grande no grafico)
-points(spa$X, spa$Y, cex=riqueza/3.5,pch=1) +   #add bordas, permite vermos as sobreposições dos círculos
-points(spa$X, spa$Y, cex=0.5, pch=16)   #add centros
+lines(espa$X, espa$Y, col="blue4") +
+points(espa$X,e spa$Y, cex=riqueza/3.5,pch=16, col="gray") +   #add círculos de riqueza (dividiu por 3.5 pois riqueza ficava muito grande no grafico)
+points(espa$X, espa$Y, cex=riqueza/3.5,pch=1) +   #add bordas, permite vermos as sobreposições dos círculos
+points(espa$X, espa$Y, cex=0.5, pch=16)   #add centros
 
-## Calcular cluster por Bray-Curtis:
-# 1-Não precisa transformar(especies), precisa nos fisico-quimicos (mas nele use matriz euclidiana)
-# 2-Calcular Matriz
-spe.bray <-vegdist(spe_8, method="bray")
-# 3-Calcular cluster
-cluster1<-hclust(spe.bray, method="average")
-# 4-Coeficiente de correlação cofenética
+####### Protocolo para Cluster:
+
+##
+#(2) Padronização dos dados 
+#(aplicar só se necessario, como é p caso das características fisico-químicas que possuem métricas bem diferentes))
+fisquipad<-decostand(fisqui, method="standardize") 
+
+##
+#(3) Criar matriz de distancia, nesse caso testarei diferentes métricas
+fisquipad.euc<-dist(fisquipad, method="euclidean") #Euclideana
+spe.bray <-vegdist(spe_8, method="bray") #Bray-curtis
+spe.jac <-vegdist(spe_8, method="jaccard", binary=TRUE) #Jaccard
+
+##
+#(4) calcular cluster e coeficiente de correlaçao cofenetico 
+#(e escolher a melhor metrica)
+cluster1<-hclust(fisquipad.euc, method="average"
+cluster2<-hclust(spe.bray, method="average")
+cluster3<-hclust(spe.jac, method="average")
+
 cluster1.coph<-cophenetic(cluster1)
-cor(spe.bray, cluster1.coph)
-# 5-Visualizar cluster
-spe.bray.dend<-as.dendrogram(cluster1)
+cor(fisquipad.euc, fisquipad.euc.coph) 
+#compara matriz cofenetica com a matriz euclidiana, mais perto de 1 = +semelhantes :D
+
+cluster2.coph<-cophenetic(cluster2)
+cor(spe.bray, cluster2.coph)
+
+cluster3.coph<-cophenetic(cluster3)
+cor(spe.jac, cluster3.coph)
+
+##
+#(5) plotar cluster com a matriz de melhor coeficiente (
+
+#Visualização plot padrão (da classe hclust):
+plot(cluster1, hang=-1) # hang-1 estica e padroniza o dendograma
+# Visualização horizontal:
+fisquipad.euc.dend<-as.dendrogram(cluster1) #função as. permite transformar em classe dendograma o seu cluster
+plot(fisquipad.euc.dend, horiz=T)
+
+spe.bray.dend<-as.dendrogram(cluster2)
 plot(spe.bray.dend, horiz=T) 
-## Calcular Jaccard:
-# method="jaccard", binary=TRUE nos argumentos
 
-#padronizar dados
 
-# criar e escolher matriz de distancia
+##
+#(6) Criar Mapa de calor
 
-#calcular coeficiente de correlaçao cofenetico
+library(gclus)
+source("coldiss.R")
+#coldiss(D=dist.object, nc=4,byrank=TRUE,diag=FALSE) # argumentos padrão
+#byrank= TRUE :=sized categories 	FALSE :=length intervals
+#diag= TRUE :rótulos posicionados na diagonal
+#nc= numero de cores no mapa (magenta=+prox, cyan=+dist)
+#Bray-curtis
+coldiss(spe.bray) #ou
+coldiss(spe.bray, byrank=FALSE,diag=TRUE)
+#Jaccard
+coldiss(spe.jac, byrank=FALSE,diag=TRUE)
 
-#criar cluster com matriz de melhor coeficiente (
+dmat.color(spe.bray, colors= default.dmat.color, byrank=, ...) # Modificar as cores da matriz
 
-#criar mapa de calor
 
-#fazer ordenaçao dos dados para avaliar as mudanças das caracteristicas fisico-quimicas
 
-#dividir dados em area diretamente e indiretamente impactada
+##
+#(7) fazer ordenaçao dos dados para avaliar as mudanças das caracteristicas fisico-quimicas
 
-#há autocorrelaçao espacial? A q dostancia os resultados passam a 
+## PCA
+pca.fisqui<-rda(fisqui, scale=T) 
+#scale=T é oq vai padronizar (standardization) os dados, sem ele será usado a matriz de covariancia
+#só nao precisa dele qnd todas as variáveis tem a mesma unidade
+
+summary(pca.fisqui)
+#'cumulative proportion' quanta explicação é fornecida por n Componentes Principais (PC2=olhar p 2 componentes, é até onde vamos usar, par a par)
+#'species scores' qnt informação cada variável tras p explica cada Componente Principal (+valor, +explica)
+# valores do componente (site scores) pode ser usado como variável
+
+biplot(pca.fisqui)
+
+
+
+##
+#(8) dividir dados em area diretamente e indiretamente impactada no NMDS
+
+#criando a matriz de distância
+spe.jac<-vegdist(spe, method="jaccard", binary=T) # sempre por binary=T qnd usa jaccard
+
+#analise NMDS
+help(metaMDS)  #ver caracteristicas da função: try= repetição mínima; trymax=maximo de repetições
+nmds.jac<-metaMDS(spe.jac) #ele ele avisa "New best solution' cada vez q acha um novo resultado ótimo
+     #mas ele ainda continua rodando as quantias demandadas, avisa tbm de resultados similares ao ótimo
+     # se acha no início ótimo, se ele demora p achar, aumente as repetições, eventualmente ocorrerá momento q as 10 ultimas soluções são inúteis, aí vc pára.
+
+plot(nmds.jac) #grafico de disperção
+plot(nmds.jac, type="t")       #type="t" troca bolinhas pelos nomes das unidades amostrais
+      
+#vamos olhar altitude na tentativa de agrupar os dados
+summary(amb)
+as.data.frame(amb[,2]) #usa o as.(=mostre-me como) p R mostrar os dados em um colunas(data.frame) ao invés da forma de vetor(tudo em linhas)
+
+#olhamos e vamos classsificar como 1-10 (mais altas), depois 11-, 
+#se vais a campo essa quebra deveria ja ser definida por conheceres as características da area 
+      
+#Criar classe (usar Logica)
+alt.clas<-ifelse(amb$alt>600,"alto","baixo") #if >600 =alto, else =baixo
+alt.clas<-as.factor(alt.clas) #transforma o objeto em fator (variável categórica) q agora pode ser usada nas analises
+      #esse é um argumento circular sem perigo, bão gera erro se executar alt.clas 2 vezes
+      
+cores.alt<-c("blue4","red4")
+
+plot(nmds.jac, type="n")	#grafico em branco e vais add as características: 
+points(nmds.jac, pch=16, col=cores.alt[alt.clas])   
+      #no resultado vimos q as espécies de altitudes +baixas apresentam uma distribuição no grafico +heterogenea
+ordihull(nmds.jac, alt.clas, col=cores.alt) #add poligonos convexos
+legend("topleft", legend=levels(alt.clas), pch=16, col=cores.alt)
+
+
+
+## envfit
+envfit.jac<-envfit(nmds.jac,fisqui) #analises sem nome, tem a logica (olhar o help)
+#entao ao citar deves explicar: ela busca relações lineares em uma analise de ordenação
+plot(envfit.jac) #aparece as linhas de regressões de cada variável fisico-quimicas no grafico como na PCA
+envfit.jac	#mostra os resultados das regressões (relações lineares)
+#no caso de muitas variáveis, ao invés de usar os dados fisico-químicos direto, poderias aplicar os resultados da PCA q já fizemos dos dados fisico-químicos
+
+#Vamos verificar se uma das variáveis inportantes (oxigenação) tem relação com a altitude q usamos p agrupar
+plot(amb$oxy~amb$alt, pch=16)
+cor(amb$oxy,amb$alt)
+
+boxplot(amb$oxy~alt.clas, range=0)
+boxplot(amb$nit~alt.clas, range=0)
+#resultados até agora, oxigênio é importante para determinar a composição
+#e nitrogênio parece se conectar bem com a divisão de classes de altitude
+
+
+
+##
+#(9) há autocorrelaçao espacial? A q distancia os resultados passam a 
+
+
+
+
+
+## Teste de Mantel      
+      
+fisqui.pad<-decostand(fisqui, method="standardize") 
+fisqui.euc<-vegdist(fisqui.pad, method="euclidean") #matriz de distância de dados físico-químicos
+      
+spe.jac<-vegdist(spe, method="jaccard", binary=T) #matriz de distância de dados de espécies
+
+mantel(fisqui.euc, spe.jac)      
+# Mantel statistic r: 0.4199 #por volta de 43% das variações são explicadas pelas variaveis fisico-quimicas (mas a analise não dá causa e efeito)
+#      Significance: 0.001 
+
+# Sheppard plot       
+plot(fisqui.euc, spe.jac, pch=16, cex=0.5)   # grafico mostra(funil) q a partir de certa distância a variação passa a ser enorme
+      #na pratica dados geraram um funil invertido, ambientes com diferentes características se encontra sp. bem diferentes, 
+      #mas qnd carcteristicas são próxima a presença de sp. é imprevisível, tem de muito prox a muito diferentes.
+
+espa.euc<-vegdist(espa, method="euclidean") #matriz de distância de dados espaciais     
+
+# Mantel parcial:      
+mantel.partial(fisqui.euc, spe.jac, spa.euc)    
+      
+######################
+#Anosim e Permanova(adonis)
+
+#Criar variável categórica:
+alt.clas<-ifelse(amb$alt>600,"alto","baixo") #if >600 =alto, else =baixo
+alt.clas<-as.factor(alt.clas) #transforma o objeto em fator (variável categórica)
+
+##
+#Anosim
+resultado.anosim<-anosim(spe.jac,alt.clas)
+resultado.anosim        #maior R maior diferença de composição entre os grupos
+plot(resultado.anosim)  #mostra dif (mediana) dentro dos grupos e entre os grupos, a largura do boxplot =n, 
+      #resultado mostrou diferença menor dentro dos grupos do que entre os grupos
+      
+##      
+# adonis  
+resultado.adonis<-adonis(spe.jac~alt.clas)
+resultado.adonis #gera um coenficiente de determinação (R2=proporção da variável resposta explicada pela explicativa)(anosim mostra correlaçao)
+   
+#########################################      
+## Autocorrelogramas de Mantel      
+      
+jac.espa<-mantel.correlog(spe.jac, espa.euc) #aqui a ordem importa, a nao ser q escreva por extenso, primeiro argumennto: d.eco= segundo: d.geo=
+jac.espa	#cria classes de distância (class.index= até 9m, até 25m, até 42m...), 
+#p cada classe indica o n presente nelas (qnd muito baixo o n não consegue calcular alto correlação)
+#há autocorrelação qnd Pr(mantel) menor q 0.05
+plot(jac.espa) #quadradinho preto autorrelação presente, branco ausente(não signif) ou não calculado
+#quando a linha vermelha cruza a linha dos resultado é o ponto ideal que não há autocorrelação espacial, seria a distância entre coletores q deves usar na sua coleta de dados
+
+##############################
+## Métodos de filtros espaciais -> filtrar os resíduos
+
+riqueza<-specnumber(spe)
+
+#1-PCA:
+espa.pca<-princomp(espa.euc) 	#usamos pricomp pois função rda nao aceita objeto q não seja data.frame, converter p matriz chato se tem outras q fação PCA
+espa.pca
+
+#2-Extrai os filtros:
+summary(espa.pca)	#Proporção de explicação de cada componente p escolher quais usar
+filtros<-espa.pca$scores[,1:5] #até o 5 já explica 99%, scores é o local dos resultados da PCA por unidade amostral
+
+#3-Reg mpultipla
+resultado.filtros<-lm(riqueza~filtros)
+summary(resultado.filtros)
+
+#4-Pegando os resíduos
+riqueza.res<-resultado.filtros$residuals
+riqueza.res
+
+#5- agora podes usar a variável como desejado 
+#resíduos são a parte das variáveis sem receber influencia das variáveis analisadas até o momento (espaciais)
+
