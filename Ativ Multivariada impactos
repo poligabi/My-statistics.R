@@ -1,0 +1,28 @@
+#############################################################
+# Atividade final de disciplina de Estatistica Multivariada #
+# Ideia de protocolo para avaliar impactos ambientais
+##########################
+
+#primeiro vou criar amostras de dados no R
+rnorm(n,media,desvio)
+
+setwd(C:/R/)
+ambi<-read
+espa<-read
+sp<-read
+
+#padronizar dados
+
+# criar e escolher matriz de distancia
+
+#calcular coeficiente de correlaçao cofenetico
+
+#criar cluster com matriz de melhor coeficiente (
+
+#criar mapa de calor
+
+#fazer ordenaçao dos dados para avaliar as mudanças das caracteristicas fisico-quimicas
+
+#dividir dados em area diretamente e indiretamente impactada
+
+#há autocorrelaçao espacial? A q dostancia os resultados passam a 
