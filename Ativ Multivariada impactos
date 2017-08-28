@@ -11,6 +11,18 @@ ambi<-read.csv(" .csv", row.names=1)
 espa<-read.csv("
 sp<-read.csv("
 
+# Grafico d riqueza de especies por unidadea amostral espacial:
+library(vegan)
+
+# Add riqueza d sp.
+riqueza<-specnumber(spe) #função do pacote q calcula riqueza através dos dados brutos
+
+plot(spa$X, spa$Y, type="n", ylim=c(20,120),    #função concatenar foi usada p ...
+xlab= "Coordenada X(km)", ylab= "Coordenada Y(km)", las=1) +
+lines(spa$X, spa$Y, col="blue4") +
+points(spa$X, spa$Y, cex=riqueza/3.5,pch=16, col="gray") +   #add círculos de riqueza (dividiu por 3.5 pois riqueza ficava muito grande no grafico)
+points(spa$X, spa$Y, cex=riqueza/3.5,pch=1) +   #add bordas, permite vermos as sobreposições dos círculos
+points(spa$X, spa$Y, cex=0.5, pch=16)   #add centros
 
 ## Calcular cluster por Bray-Curtis:
 # 1-Não precisa transformar(especies), precisa nos fisico-quimicos (mas nele use matriz euclidiana)
