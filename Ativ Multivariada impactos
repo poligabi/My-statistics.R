@@ -7,9 +7,25 @@
 rnorm(n,media,desvio)
 
 setwd(C:/R/)
-ambi<-read
-espa<-read
-sp<-read
+ambi<-read.csv(" .csv", row.names=1)
+espa<-read.csv("
+sp<-read.csv("
+
+
+## Calcular cluster por Bray-Curtis:
+# 1-Não precisa transformar(especies), precisa nos fisico-quimicos (mas nele use matriz euclidiana)
+# 2-Calcular Matriz
+spe.bray <-vegdist(spe_8, method="bray")
+# 3-Calcular cluster
+cluster1<-hclust(spe.bray, method="average")
+# 4-Coeficiente de correlação cofenética
+cluster1.coph<-cophenetic(cluster1)
+cor(spe.bray, cluster1.coph)
+# 5-Visualizar cluster
+spe.bray.dend<-as.dendrogram(cluster1)
+plot(spe.bray.dend, horiz=T) 
+## Calcular Jaccard:
+# method="jaccard", binary=TRUE nos argumentos
 
 #padronizar dados
 
