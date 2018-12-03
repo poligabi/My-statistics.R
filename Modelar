@@ -154,3 +154,59 @@ plot(border, col = "transparent", lwd = 1.5, add = TRUE)
 plot(lakes, col = "skyblue", border = "royalblue", add = TRUE)
 points(data$coordx, data$coordy, pch = "+", cex = 0.8)        #add pontos de coleta
 
+
+
+
+
+
+###### DENDROGRAMA + HEATMAP
+library(vegan)
+library(gplots)
+#example(heatmap.2)
+library(RColorBrewer)
+
+setwd("C:/R/")
+all.data<-read.table("lista de yaguas.txt",header=T,sep="\t")
+all.data<-read.table(file.choose(),header=T) #seleciona dados lista de yaguas.txt
+str(all.data) #confere
+
+head(all.data)
+row.names(all.data)<-all.data$sample #nomeou todas as linhas com essa coluna
+all.data<-all.data[,-1]		#depois tira essa coluna p ficar só o data frame
+
+#ou usar direto probabilidade de ocupação de cada sp
+data.prop<- all.data/rowSums(all.data) #transformar dados: abundancia proporcional, diie n peixes d cada sp pela quantia total de peixes na estação
+str(data.prop)
+#<-decostand(fisqui, method="standardize") #ou Padronização dos dados
+scaleyellowred<- colorRampPalette(c("lightyellow","red"),space="rgb")(100)
+heatmap(as.matrix(data.prop),Rowv=NA,Colv=NA,col=scaleyellowred) #cria mapa de calor
+
+help(apply)
+maxab<-apply(data.prop,1,max) # 2=colum 1=linha max=funçao q quero aplicar, nesse aso ela seleciona os valores maximos de cada coluna
+maxab
+n1<-names(which(maxab<0.05))	#seleciona sp menos abundantes
+data.prop.1<-data.prop[,-which(names(data.prop) %in% n1)]	#retira sp menos abundantes
+heatmap(as.matrix(data.prop.1),Rowv=NA,Colv=NA,col=scaleyellowred,
+margins=c(10,2))		#cria novo mapa de calor só com sp mais abundantes
+
+## modificaciones para el projecto
+data.prop.1<-data.prop[,-which(names(data.prop) %in% n1)]
+fam<-read.table("44 familias.txt",sep="\t",header=F)
+t(fam)->colnames(data.prop.1) #trocou o nome das sp. pelas famílias
+
+data.prop.12<-data.prop.1[1:12,] #cria coluna com 12linhas
+c("IR1","IR2","IR3","IR4","IR5","IR6","IR7","IR8","IR9","IR10","IR11","IR12")->
+rownames(data.prop.12)		# preenche as linhas dessa nova coluna
+##
+
+# continuando, add dendograma ao mapa de calor
+data.dist<-vegdist(data.prop.12,method="bray")	#cria matriz de distancia
+row.clus<-hclust(data.dist,"aver")		#calcula cluster pelo metodo average
+
+heatmap(as.matrix(data.prop.12),Rowv=as.dendrogram(row.clus),
+Colv=NA,col=scaleyellowred, margins=c(10,2))	#gera mapa de calor com cluster
+
+## Fin
+
+
+
