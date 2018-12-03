@@ -1,0 +1,156 @@
+########## Modelagem Hierarquica
+
+data <- read.table("SwissSquirrels.txt", header = TRUE)
+str(data)
+y <- as.matrix(data[,7:9]) # Grab 2007 squirrel det/nondet data
+elev.orig <- data[,"ele"] # Unstandardised, original values of covariates
+forest.orig <- data[,"forest"]
+time <- matrix(as.character(1:3), nrow=265, ncol = 3, byrow = T)
+date.orig <- as.matrix(data[,10:12])
+dur.orig <- as.matrix(data[,13:15])
+
+# Overview of covariates
+covs <- cbind(elev.orig, forest.orig, date.orig, dur.orig)
+par(mfrow = c(3,3))
+for(i in 1:8){
+hist(covs[,i], breaks = 50, col = "grey", main = colnames(covs)[i])
+}
+pairs(cbind(elev.orig, forest.orig, date.orig, dur.orig))
+
+# Standardise covariates and mean-impute date and duration
+# Compute means and standard deviations
+(means <- c(apply(cbind(elev.orig, forest.orig), 2, mean), date.orig =
+mean(c(date.orig), na.rm = TRUE), dur.orig=mean(c(dur.orig), na.rm = TRUE)))
+(sds <- c(apply(cbind(elev.orig, forest.orig), 2, sd), date.orig = sd(c(date.orig),
+na.rm = TRUE), dur.orig=sd(c(dur.orig), na.rm = TRUE)))
+
+# Scale covariates
+elev <- (elev.orig - means[1]) / sds[1]
+forest <- (forest.orig - means[2]) / sds[2]
+date <- (date.orig - means[3]) / sds[3]
+date[is.na(date)] <- 0
+dur <- (dur.orig - means[4]) / sds[4]
+dur[is.na(dur)] <- 0
+
+# Load unmarked, format data and summarize
+library(unmarked)
+umf <- unmarkedFrameOccu(y = y, siteCovs = data.frame(elev = elev, forest = forest), obsCovs
+= list(time = time, date = date, dur = dur))
+summary(umf)
+
+# Fit a series of models for detection first and do model selection
+summary(fm1 <- occu(~1 ~1, data=umf))
+summary(fm2 <- occu(~date ~1, data=umf))
+summary(fm3 <- occu(~date+I(date^2) ~1, data=umf))
+summary(fm4 <- occu(~date+I(date^2)+I(date^3) ~1, data=umf))
+summary(fm5 <- occu(~dur ~1, data=umf))
+summary(fm6 <- occu(~date+dur ~1, data=umf))
+summary(fm7 <- occu(~date+I(date^2)+dur ~1, data=umf))
+summary(fm8 <- occu(~date+I(date^2)+I(date^3)+dur ~1, data=umf))
+summary(fm9 <- occu(~dur+I(dur^2) ~1, data=umf))
+summary(fm10 <- occu(~date+dur+I(dur^2) ~1, data=umf))
+summary(fm11 <- occu(~date+I(date^2)+dur+I(dur^2) ~1, data=umf))
+summary(fm12 <- occu(~date+I(date^2)+I(date^3)+dur+I(dur^2) ~1, data=umf))
+
+# Put the fitted models in a "fitList" = rank them by AIC
+fms <- fitList("p(.)psi(.)" = fm1,
+	"p(date)psi(.)" = fm2,
+	"p(date+date2)psi(.)" = fm3,
+	"p(date+date2+date3)psi(.)" = fm4,
+	"p(dur)psi(.)" = fm5,
+	"p(date+dur)psi(.)" = fm6,
+	"p(date+date2+dur)psi(.)" = fm7,
+	"p(date+date2+date3+dur)psi(.)" = fm8,
+	"p(dur+dur2)psi(.)" = fm9,
+	"p(date+dur+dur2)psi(.)" = fm10,
+	"p(date+date2+dur+dur2)psi(.)" = fm11,
+	"p(date+date2+date3+dur+dur2)psi(.)" = fm12)
+(ms <- modSel(fms))
+
+
+### Continue with model fitting for occupancy, guided by AIC as we go
+
+# Check effects of elevation
+summary(fm13 <- occu(~date+dur+I(dur^2) ~elev, data=umf))
+summary(fm14 <- occu(~date+dur+I(dur^2) ~elev+I(elev^2), data=umf))
+summary(fm15 <- occu(~date+dur+I(dur^2) ~elev+I(elev^2)+ I(elev^3), data=umf))
+cbind(fm13@AIC, fm14@AIC, fm15@AIC)       # outra maneira de selecionar pelo AIC, neste: model 14 with elev2 best
+
+# Check effects of forest and interactions (mantém o que descobriu na etapa anterior ser o melhor e testa mais
+summary(fm16 <- occu(~date+dur+I(dur^2) ~elev+I(elev^2)+forest, data=umf))
+summary(fm 17<-occu(~date+dur+I(dur^2) ~elev+I(elev^2)+forest+I(forest^2), data=umf))
+summary(fm18 <- occu(~date+dur+I(dur^2) ~elev+I(elev^2)+forest+I(forest^2)+elev:
+forest, data=umf))
+summary(fm19 <- occu(~date+dur+I(dur^2) ~elev+I(elev^2)+forest+I(forest^2)+elev:
+forest+elev:I(forest^2), data=umf))
+summary(fm20 <- occu(~date+dur+I(dur^2) ~elev+I(elev^2)+forest+I(forest^2)+elev:
+forest+elev:I(forest^2)+I(elev^2):forest, data=umf))
+summary(fm21 <- occu(~date+dur+I(dur^2) ~elev+I(elev^2)+forest+I(forest^2)+elev:
+forest+elev:I(forest^2)+I(elev^2):forest+ I(elev^2):I(forest^2), data=umf))
+cbind(fm16@AIC, fm17@AIC, fm18@AIC, fm19@AIC, fm20@AIC) ## fm20 is best
+
+
+
+
+############# CRIAR MAPAS DE DISTRIBUIÇÂO
+
+####### Load the landscape data
+
+library(raster)
+library(rgdal)
+
+setwd("")         # diretorio da pasta com os arquivos .tif 
+
+bio1.tif <- raster("bio01_neotropic_50km_gcs_wgs84.tif")        # importar um arquivo .tif ou .asc no formato rasterlayer 
+bio1.tif              # visualizar as propriedades do arquivo raster importado 
+plot(bio1.tif)        # plot do raster 
+
+# Podemos importar diversos arquivos separadamente, atribuindo cada um a uma variável 
+#ou podemos utilizar a função 'stack'
+
+list.files(pattern = ".tif")           # listar os nomes dos arquivos na pasta do diretorio 
+tif <- list.files(pattern = ".tif") 
+tif.bios <- stack(tif)                 # importar os arquivos .tif no formato rasterstack 
+tif.bios
+names(tif.bios) <- paste0("bio", 1:19)  # renomear os arquivos raster importados 
+tif.bios 
+plot(tif.bios)            # plot de todos dos raster 
+plot(tif.bios[[c(2, 5, 17, 18)]], col = rainbow(100, .7))     # plot de alguns dos raster 
+
+
+# Get predictions of occupancy prob for each 1km2 quadrat
+newData <- data.frame(elev = (tif.bios$elevation - means[1])/sds[1], forest = (tif.bios$forest - means[2])/sds[2])
+predpsi <- predict(fm20, type="state", newdata=newData)        #fm20 = melhor função occu do unMarked
+
+
+# Define new data frame with coordinates and outcome to be plotted
+PARAM <- data.frame(x = tif.bios$x, y = tif.bios$y, z = predpsi$Predicted)
+r1 <- rasterFromXYZ(PARAM)     # convert into raster object
+
+# Mask quadrats with elevation greater than 2250
+elev <- rasterFromXYZ(cbind(tif.bios$x, tif.bios$y, tif.bios$elevation))
+elev[elev > 2250] <- NA
+r1 <- mask(r1, elev)
+
+# Plot species distribution map (Fig. 10-14 left)
+par(mfrow = c(1,2), mar = c(1,2,2,5))
+mapPalette <- colorRampPalette(c("grey", "yellow", "orange", "red"))
+plot(r1, col = mapPalette(100), axes = F, box = F, main = "Capuchin monkey distribution between 2006 and 2009")
+
+#Plot landscape characteristics
+lakes <- readOGR(".", "lakes")
+rivers <- readOGR(".", "rivers")
+border <- readOGR(".", "border")
+plot(rivers, col = "dodgerblue", add = TRUE)
+plot(border, col = "transparent", lwd = 1.5, add = TRUE)
+plot(lakes, col = "skyblue", border = "royalblue", add = TRUE)
+
+# Plot SE of the species distrbution map (Fig. 10-14 right)
+r2 <- rasterFromXYZ(data.frame(x = tif.bios$x, y = tif.bios$y, z = predpsi$SE))
+r2 <- mask(r2, elev)
+plot(r2, col = mapPalette(100), axes = F, box = F, main = "Uncertainty map between 2006 and 2009")
+plot(rivers, col = "dodgerblue", add = TRUE)
+plot(border, col = "transparent", lwd = 1.5, add = TRUE)
+plot(lakes, col = "skyblue", border = "royalblue", add = TRUE)
+points(data$coordx, data$coordy, pch = "+", cex = 0.8)        #add pontos de coleta
+
