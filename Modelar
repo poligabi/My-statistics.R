@@ -14,6 +14,14 @@
 # 4 # Mapa
 
 
+#########################################################################
+# Polígono da ocorrência: 						#
+# 1- Pontos presença em mapa de calor					#
+# 2- Raster> extração > cortador: camada mascara=polígono base(alagoas)	#
+# 3- Raster > calculadora raster : camada>0.9				#
+# 4- Raster > Conversor >Poligonizar 					#
+#########################################################################
+
 ########## Modelagem Hierarquica
 
 data <- read.table("SwissSquirrels.txt", header = TRUE)
