@@ -2,16 +2,17 @@
 
 
 #### To do list:
-# 1 # Criar arquivos .tif ou .asc dos atributos ambientais do estado: declividade, densidade de humanos...
-# - Polígonos em raster : complemento GDALtools "Raster > Conversion > Rasterizar (lembrar de salvar SRC)
-# - Raster> extração > cortador: camada mascara=polígono base(alagoas)
-# - Declividade: Raster > análise de terreno >“Camada com as elevações” =altitude; Fatorz=1
-# 2 # Cruzamento espacial na camada alvo (pontos de coleta de presença) dos dados ambientais
+# 1 # GRID 10 x 10 km: Vetor > Investigar > grade vetorial : x=0.1000
+# 2 # Cruzamento espacial da camada alvo (pontos de coleta/grid de entrevistas) com as camadas dos dados ambientais
 # - Vetor > Gerenciar dados> Unir atributos por localização
 # - podes transferir os dados brutos, utilizando a opção “Tomar atributos da primeira feição localizada”, 
 # - ou transferir os dados sumarizados, média, soma, mínima, máxima ou mediana, utilizando a função “Tomar sumário de feições intersectantes”
 # 3 # Modelagem Hierarquica de occupação
-# 4 # Mapa
+# 4 # Criar arquivos .tif ou .asc dos atributos ambientais do estado: declividade, densidade de humanos...
+# - Polígonos em raster : complemento GDALtools "Raster > Conversion > Rasterizar (lembrar de salvar SRC)
+# - Raster> extração > cortador: camada mascara=polígono base(alagoas)
+# - Declividade: Raster > análise de terreno >“Camada com as elevações” =altitude; Fatorz=1
+# 5 # Mapa
 
 
 #########################################################################
