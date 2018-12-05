@@ -23,6 +23,51 @@
 # 4- Raster > Conversor >Poligonizar 					#
 #########################################################################
 
+
+########## Modelagem Hierarquica CPB ->OccuFP->Occu
+
+data <- read.table(file = "clipboard", sep = "\t", header=TRUE)
+str(data)
+y <- as.matrix(data[,1:5]) # Grab 2006-9 monkeys det/nondet data
+solos <- data[,"Solos_cor"]
+chu <- data[,"chu"]
+tmax <- data[,"Temp_max"]
+tmin <- data[,"Temp_min"]
+tmed <- data[,"Temp_med"]
+
+# Correlacionar covariates
+covs <- cbind(solos, chu, tmax, tmin, tmed)
+par(mfrow = c(3,3))
+for(i in 1:8){
+hist(covs[,i], breaks = 50, col = "grey", main = colnames(covs)[i])
+}
+pairs(cbind(solos, chu, tmax, tmin, tmed))
+
+
+# Load unmarked, format data (Occu=classique or OccuFP=false-positive) and summarize
+library(unmarked)
+umf1 <- unmarkedFrameOccuFP(y = y, siteCovs = data.frame(solos = solos, chu = chu, 
+tmax = tmax, tmin = tmin, tmed = tmed), type = 3 )
+#type 1: assume-se que o processo de detecção é idêntico aos modelos clássicos, onde as probabilidades de falsos negativos são estimadas, mas os falsos positivos não ocorrem. 
+#type 2: podemos ter falsos negativos e falsos positivos. Tanto p (a real probabilidade de detecção) e fp (a - a probabilidade de observar falsos positivos) são estimados para as ocasiões em que este tipo de dados podem ocorrer. 
+#type 3: assumimos que as observações podem incluir detecções confirmadas(=2) (assume-se que falsos positivos não ocorrem) e detecções incertas que podem ou não incluir falsos positivos. 
+summary(umf1)
+
+m1 <- occuFP(detformula = ~ 1, FPformula = ~1, stateformula = ~ 1, data = umf1) #modelo nulo
+#Error in if (sum(type[2:3]) == 0) stop("Only type 1 data. No data types with false positives. Use occu instead.") 
+
+umf <- unmarkedFrameOccu(y = y, siteCovs = data.frame(solos = solos, chu = chu, 
+tmax = tmax, tmin = tmin, tmed = tmed))
+
+
+# Fit a series of models for detection first and do model selection
+summary(fm1 <- occu(~1 ~1, data=umf))
+summary(fm2 <- occu(~1 ~tmin , data=umf))
+summary(fm3 <- occu(~1 ~tmax, data=umf))
+cbind(fm1@AIC, fm2@AIC, fm3@AIC)       # outra maneira de selecionar pelo AIC
+
+
+
 ########## Modelagem Hierarquica
 
 data <- read.table("SwissSquirrels.txt", header = TRUE)
