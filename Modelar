@@ -181,30 +181,56 @@ cbind(fm1@AIC, fm2@AIC, fm3@AIC, fm4@AIC)
 
 ### Continue with model fitting for occupancy, guided by AIC as we go
 
+#Check effects of spatial location
+summary(fm10 <- occu(~queca ~lon, data=umf))
+summary(fm11 <- occu(~queca ~lat, data=umf))
+summary(fm12 <- occu(~queca ~lon+lat, data=umf))
+cbind(fm2@AIC, fm10@AIC, fm11@AIC, fm12@AIC)
+
+#Check effects of water
+summary(fm13 <- occu(~queca ~agua, data=umf))
+summary(fm14 <- occu(~queca ~agdis, data=umf))
+summary(fm15 <- occu(~queca ~agua+agdis, data=umf))
+cbind(fm2@AIC, fm13@AIC, fm14@AIC, fm15@AIC)
+
+#Check effects of size and format
+summary(fm16 <- occu(~queca ~area, data=umf))
+summary(fm17 <- occu(~queca ~par, data=umf))
+summary(fm18 <- occu(~queca ~form, data=umf))
+summary(fm19 <- occu(~queca ~area+par, data=umf))
+summary(fm20 <- occu(~queca ~area+form, data=umf))
+cbind(fm2@AIC, fm16@AIC, fm17@AIC, fm18@AIC, fm19@AIC, fm20@AIC)
+
+#Check effects of declivity and vegetation cover 
+summary(fm21 <- occu(~queca ~dec, data=umf))
+summary(fm22 <- occu(~queca ~veg, data=umf))
+summary(fm23 <- occu(~queca ~dec+veg, data=umf))
+cbind(fm2@AIC, fm21@AIC, fm22@AIC, fm23@AIC)
+
 # Check effects of Matriz
-summary(fm10 <- occu(~queca ~urbd, data=umf))
-summary(fm11 <- occu(~queca ~agrd, data=umf))
-summary(fm12 <- occu(~queca ~pecd, data=umf))
-summary(fm13 <- occu(~queca ~popq, data=umf))
-summary(fm14 <- occu(~queca ~popq+urbd, data=umf))
-summary(fm15 <- occu(~queca ~popq+agrd, data=umf))
-summary(fm16 <- occu(~queca ~popq+pecd, data=umf))
-cbind(fm10@AIC, fm11@AIC, fm12@AIC, fm13@AIC, fm14@AIC, fm15@AIC, fm16@AIC)
+summary(fm30 <- occu(~queca ~isol, data=umf))
+summary(fm31 <- occu(~queca ~urbd, data=umf))
+summary(fm32 <- occu(~queca ~agrd, data=umf))
+summary(fm33 <- occu(~queca ~pecd, data=umf))
+summary(fm34 <- occu(~queca ~popq, data=umf))
+summary(fm35 <- occu(~queca ~isol+popq, data=umf))
+summary(fm36 <- occu(~queca ~isol+urbd, data=umf))
+summary(fm37 <- occu(~queca ~isol+agrd, data=umf))
+summary(fm38 <- occu(~queca ~isol+pecd, data=umf))
+summary(fm39 <- occu(~queca ~popq+urbd, data=umf))
+summary(fm40 <- occu(~queca ~popq+agrd, data=umf))
+summary(fm41 <- occu(~queca ~popq+pecd, data=umf))
+summary(fm42 <- occu(~queca ~isol+popq+urbd, data=umf))
+summary(fm43 <- occu(~queca ~isol+popq+agrd, data=umf))
+summary(fm44 <- occu(~queca ~isol+popq+pecd, data=umf))
+summary(fm45 <- occu(~queca ~isol+popq+agrdd+pecd, data=umf))
+cbind(fm2@AIC, fm30@AIC, fm31@AIC, fm32@AIC, fm33@AIC, fm34@AIC, fm35@AIC, fm36@AIC,
+fm37@AIC, fm38@AIC, fm39@AIC, fm40@AIC, fm41@AIC, fm42@AIC, fm43@AIC, fm44@AIC, fm45@AIC)
 
-# Check effects of forest and interactions (mantém o que descobriu na etapa anterior ser o melhor e testa mais
-summary(fm16 <- occu(~date+dur+I(dur^2) ~elev+I(elev^2)+forest, data=umf))
-summary(fm 17<-occu(~date+dur+I(dur^2) ~elev+I(elev^2)+forest+I(forest^2), data=umf))
-summary(fm18 <- occu(~date+dur+I(dur^2) ~elev+I(elev^2)+forest+I(forest^2)+elev:
-forest, data=umf))
-summary(fm19 <- occu(~date+dur+I(dur^2) ~elev+I(elev^2)+forest+I(forest^2)+elev:
-forest+elev:I(forest^2), data=umf))
-summary(fm20 <- occu(~date+dur+I(dur^2) ~elev+I(elev^2)+forest+I(forest^2)+elev:
-forest+elev:I(forest^2)+I(elev^2):forest, data=umf))
-summary(fm21 <- occu(~date+dur+I(dur^2) ~elev+I(elev^2)+forest+I(forest^2)+elev:
-forest+elev:I(forest^2)+I(elev^2):forest+ I(elev^2):I(forest^2), data=umf))
-cbind(fm16@AIC, fm17@AIC, fm18@AIC, fm19@AIC, fm20@AIC) ## fm20 is best
+#Check effect of best models interactions (mantém o que descobriu nas etapas anteriores e testa mais combinações)
 
-
+summary(fm50 <- occu(~queca ~, data=umf))
+cbind( ,fm50@AIC, )
 
 
 ############# CRIAR MAPAS DE DISTRIBUIÇÂO
