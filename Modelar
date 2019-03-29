@@ -234,6 +234,81 @@ summary(fm50 <- occu(~queca ~, data=umf))
 cbind( ,fm50@AIC, )
 
 
+#################### PLOTAR gráficos de predições UNI-dimensionais   (occu x cov)
+
+# Create new covariates for prediction ('prediction covs')
+orig.elev <- seq(200, 2500,,100) # New covs for prediction
+orig.forest <- seq(0, 100,,100)
+orig.date <- seq(15, 110,,100)
+orig.duration <- seq(100, 550,,100)
+ep <- (orig.elev - means[1]) / sds[1] # Standardize them like actual covs
+fp <- (orig.forest - means[2]) / sds[2]
+dp <- (orig.date - means[3]) / sds[3]
+durp <- (orig.duration - means[4]) / sds[4]
+
+# Obtain predictions
+newData <- data.frame(elev=ep, forest=0)
+pred.occ.elev <- predict(fm20, type="state", newdata=newData, appendData=TRUE)
+newData <- data.frame(elev=0, forest=fp)
+pred.occ.forest <- predict(fm20, type="state", newdata=newData, appendData=TRUE)
+newData <- data.frame(date=dp, dur=0)
+pred.det.date <- predict(fm20, type="det", newdata=newData, appendData=TRUE)
+newData <- data.frame(date=0, dur=durp)
+pred.det.dur <- predict(fm20, type="det", newdata=newData, appendData=TRUE)
+
+# Plot predictions against unstandardized 'prediction covs'
+par(mfrow = c(2,2), mar = c(5,5,2,3), cex.lab = 1.2)
+plot(pred.occ.elev[[1]] ~ orig.elev, type = "l", lwd = 3, col = "blue", ylim = c(0,1),
+las = 1, ylab = "Pred. occupancy prob.", xlab = "Elevation (m)", frame = F)
+matlines(orig.elev, pred.occ.elev[,3:4], lty = 1, lwd = 1, col = "grey")
+plot(pred.occ.forest[[1]] ~ orig.forest, type = "l", lwd = 3, col = "blue", ylim = c(0,1),
+las = 1, ylab = "Pred. occupancy prob.", xlab = "Forest cover (%)", frame = F)
+matlines(orig.forest, pred.occ.forest[,3:4], lty = 1, lwd = 1, col = "grey")
+plot(pred.det.date[[1]] ~ orig.date, type = "l", lwd = 3, col = "blue", ylim = c(0,1),
+las = 1, ylab = "Pred. detection prob.", xlab = "Date (1 = 1 April)", frame = F)
+matlines(orig.date, pred.det.date[,3:4], lty = 1, lwd = 1, col = "grey")
+plot(pred.det.dur[[1]] ~ orig.duration, type = "l", lwd = 3, col = "blue", ylim = c(0,1), las
+= 1, ylab = "Pred. detection prob.", xlab = "Survey duration (min)", frame = F)
+matlines(orig.duration, pred.det.dur[,3:4], lty = 1, lwd = 1, col = "grey")
+
+
+#################### PLOTAR gráficos de predições BI-dimensionais   (cov x cov x occu)
+
+# Predict abundance and detection jointly along two separate covariate gradients
+# abundance ~ (forest, elevation) and detection ~ (survey duration, date)
+pred.matrix1 <- pred.matrix2 <- array(NA, dim = c(100, 100)) # Define arrays
+for(i in 1:100){
+for(j in 1:100){
+newData1 <- data.frame(elev=ep[i], forest=fp[j]) # For abundance
+pred <- predict(fm20, type="state", newdata=newData1)
+pred.matrix1[i, j] <- pred$Predicted
+newData2 <- data.frame(dur=durp[i], date=dp[j]) # For detection
+pred <- predict(fm20, type="det", newdata=newData2)
+pred.matrix2[i, j] <- pred$Predicted
+}
+}
+par(mfrow = c(1,2), cex.lab = 1.2)
+mapPalette <- colorRampPalette(c("grey", "yellow", "orange", "red"))
+image(x=orig.elev, y=orig.forest, z=pred.matrix1, col = mapPalette(100), axes = FALSE,
+xlab = "Elevation [m]", ylab = "Forest cover [%]")
+contour(x=orig.elev, y=orig.forest, z=pred.matrix1, add = TRUE, lwd = 1.5, col = "blue",
+labcex = 1.3)
+axis(1, at = seq(min(orig.elev), max(orig.elev), by = 250))
+axis(2, at = seq(0, 100, by = 10))
+box()
+title(main = "Expected squirrel occurrence prob.", font.main = 1)
+points(data$ele, data$forest, pch="+", cex=1)
+image(x=orig.duration, y=orig.date, z=pred.matrix2, col = mapPalette(100), axes = FALSE,
+xlab = "Survey duration [min]", ylab = "Date (1 = April 1)")
+contour(x=orig.duration, y=orig.date, z=pred.matrix2, add = TRUE, lwd = 1.5, col = "blue",
+labcex = 1.3)
+axis(1, at = seq(min(orig.duration), max(orig.duration), by = 50))
+axis(2, at = seq(0, 100, by = 10))
+box()
+title(main = "Expected squirrel detection prob.", font.main = 1)
+matpoints(as.matrix(data[, 13:15]), as.matrix(data[, 10:12]), pch="+", cex=1)
+
+
 ############# CRIAR MAPAS DE DISTRIBUIÇÂO
 
 ####### Load the landscape data
