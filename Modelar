@@ -72,9 +72,15 @@ cbind(fm1@AIC, fm2@AIC, fm3@AIC)       # outra maneira de selecionar pelo AIC
 
 data <- read.table(file = "clipboard", sep = "\t", header=TRUE)
 str(data)
+data[-c(1,10,18,19,26,37,55,74,92),]
 
-quest <- read.table(file = "clipboard", sep = "\t", header=TRUE)
-str(quest)
+dataa = subset(data, data$biom == 1)
+datam = subset(data, data$biom == 2)
+str(datam)
+str(dataa)
+
+#possivel colocar variavel categorica (ex: estratos) mas ela deve ser numerica
+#se usar letra o R dá erro e fecha
 
 #lon.orig <- data[,"Lon"] # Unstandardised, original values of covariates
 #lat.orig <- data[,"Lat"]
@@ -83,45 +89,67 @@ dec.orig <- data[,"Dec"]
 veg.orig <- data[,"veg"]
 agua <- data[,"agua"]
 #agdis.orig <- data[,"agdis"]
-#area.orig <- data[,"area"]
-#par.orig <- data[,"par"]
-#form.orig <- data[,"form"]
+area.orig <- data[,"areaKm2"]
+par.orig <- data[,"par"]
+form.orig <- data[,"form"]
 isol.orig <- data[,"isol"]
 urbd.orig <- data[,"urbd"]
 agrd.orig <- data[,"agrd"]
 pecd.orig <- data[,"pecd"]
 popq.orig <- data[,"popq"]
 
-prego <- as.matrix(quest[,15:18]) # Monkeys det/nondet data
+#lon.orig <- datam[,"Lon"] # Unstandardised, original values of covariates
+#lat.orig <- datam[,"Lat"]
+#alt.orig <- datam[,"Alt"]
+dec.orig <- datam[,"Dec"]
+veg.orig <- datam[,"veg"]
+area.orig <- datam[,"areaKm2"]
+par.orig <- datam[,"par"]
+form.orig <- datam[,"form"]
+isol.orig <- datam[,"isol"]
+urbd.orig <- datam[,"urbd"]
+agrd.orig <- datam[,"monod"]
+pecd.orig <- datam[,"pastd"]
+popq.orig <- datam[,"popq"]
 
-queca.orig <- as.matrix(quest[,7:10])
-queco.orig <- as.matrix(quest[,11:14])
+quest <- read.table(file = "clipboard", sep = "\t", header=TRUE)
+questm = quest[-c(1:54,89),] 
+edit(questm)
+
+prego <- as.matrix(questm[,15:18]) # Monkeys det/nondet data
+
+queca.orig <- as.matrix(questm[,7:10])
+queco.orig <- as.matrix(questm[,11:14])
 
 # Standardise covariates and mean-impute date and duration
 # Compute means and standard deviations
-means <- c(apply(cbind(lon.orig, lat.orig, alt.orig, dec.orig, veg.orig, agdis.orig, area.orig, par.orig, form.orig,  
-isol.orig, urbd.orig, agrd.orig, pecd.orig, popq.orig), 2, mean))
+means <- c(apply(cbind(dec.orig, veg.orig, area.orig, par.orig, form.orig,  
+isol.orig, urbd.orig, agrd.orig, pecd.orig, popq.orig), 2, mean, na.rm=T)) 
+sds <- c(apply(cbind(dec.orig, veg.orig, area.orig, par.orig, form.orig,  
+isol.orig, urbd.orig, agrd.orig, pecd.orig, popq.orig), 2, sd, na.rm=T))
+#na.rm=T esse codigo permite q a presença de NA não estrague o calculo 
+
 sds <- c(apply(cbind(lon.orig, lat.orig, alt.orig, dec.orig, veg.orig, agdis.orig, area.orig, par.orig, form.orig,  
 isol.orig, urbd.orig, agrd.orig, pecd.orig, popq.orig), 2, sd))
 
-# Scale covariates
-lon <- (lon.orig - means[1]) / sds[1]
-lat <- (lat.orig - means[2]) / sds[2]
-alt <- (alt.orig - means[3]) / sds[3]
-dec <- (dec.orig - means[4]) / sds[4]
-veg <- (veg.orig - means[5]) / sds[5]
-agdis <- (agdis.orig - means[6]) / sds[6]
-area <- (area.orig - means[7]) / sds[7]
-par <- (par.orig - means[8]) / sds[8]
-form <- (form.orig - means[9]) / sds[9]
-isol <- (isol.orig - means[10]) / sds[10]
-urbd <- (urbd.orig - means[11]) / sds[11]
-agrd <- (agrd.orig - means[12]) / sds[12]
-pecd <- (pecd.orig - means[13]) / sds[13]
-popq <- (popq.orig - means[14]) / sds[14]
+# Scale covariates  => ATENCAO: ordem das medias= ordem usada na funcao acima
+#lon <- (lon.orig - means[1]) / sds[1]
+#lat <- (lat.orig - means[2]) / sds[2]
+#alt <- (alt.orig - means[3]) / sds[3]
+dec <- (dec.orig - means[1]) / sds[1] #conferir para ter certeza de usar os valores certos
+veg <- (veg.orig - means[2]) / sds[2]
+#agdis <- (agdis.orig - means[3]) / sds[3]
+area <- (area.orig - means[3]) / sds[3]
+par <- (par.orig - means[4]) / sds[4]
+form <- (form.orig - means[5]) / sds[5]
+isol <- (isol.orig - means[6]) / sds[6]
+urbd <- (urbd.orig - means[7]) / sds[7]
+agrd <- (agrd.orig - means[8]) / sds[8]
+pecd <- (pecd.orig - means[9]) / sds[9]
+popq <- (popq.orig - means[10]) / sds[10]
 
 
-#### OU  >>>>>>     primeiro padroniza e depois chama um a um
+#### OU  >>>>>> primeiro padroniza e depois chama um a um = NAO FUNCIONA NO UNMARKED
 #pais <-decostand(paisagem, method="standardize") 	#Dados padronizados
 #lon.s <- pais[,"Lon"]
 #lat.s <- pais[,"Lat"]
@@ -130,108 +158,86 @@ dec.s <- pais[,"Dec"]
 veg.s <- pais[,"veg"]
 agua.s <- pais[,"agua"]
 #agdis.s <- pais[,"agdis"]
-#area.s <- pais[,"area"]
-#par.s <- pais[,"par"]
-#form.s <- pais[,"form"]
+area.s <- pais[,"area"]
+par.s <- pais[,"par"]
+form.s <- pais[,"form"]
 isol.s <- pais[,"isol"]
 urbd.s <- pais[,"urbd"]
 agrd.s <- pais[,"agrd"]
 pecd.s <- pais[,"pecd"]
 popq.s <- pais[,"popq"]
 
-#### Overview of covariates
-covs <- cbind(elev.orig, forest.orig, date.orig, dur.orig)
-par(mfrow = c(3,3))
-for(i in 1:8){
-hist(covs[,i], breaks = 50, col = "grey", main = colnames(covs)[i])
-}
-pairs(cbind(elev.orig, forest.orig, date.orig, dur.orig))
-
-
-##### Load unmarked, format data and summarize
+# Load unmarked, format data and summarize
 library(unmarked)
-umf <- unmarkedFrameOccu(y = prego, siteCovs = data.frame(urbd = urbd, 
+umf <- unmarkedFrameOccu(y = prego, siteCovs = data.frame(dec = dec, veg = veg,
+par = par, form = form, isol = isol, urbd = urbd, 
 agrd = agrd, pecd = pecd, popq = popq), 
-obsCovs = list(queca = queca.orig, queco = queco.orig), type = 2)
+obsCovs = list(queca = queca.orig, queco = queco.orig))
 summary(umf)
-# OR
-umf <- unmarkedFrameOccuFP(y = prego, siteCovs = data.frame(urbd = urbd, 
-agrd = agrd, pecd = pecd, popq = popq), 
-obsCovs = list(queca = queca.orig, queco = queco.orig), type = 2)
-summary(umf)
-#type 1: assume-se que o processo de detecção é idêntico aos modelos clássicos, onde as probabilidades de falsos negativos são estimadas, mas os falsos positivos não ocorrem. 
-#type 2: podemos ter falsos negativos e falsos positivos. Tanto p (a real probabilidade de detecção) e fp (a - a probabilidade de observar falsos positivos) são estimados para as ocasiões em que este tipo de dados podem ocorrer. 
-#type 3: assumimos que as observações podem incluir detecções confirmadas(=2) (assume-se que falsos positivos não ocorrem) e detecções incertas que podem ou não incluir falsos positivos. 
 
 # Fit a series of models for detection first and do model selection
 summary(fm1 <- occu(~1 ~1, data=umf))
 summary(fm2 <- occu(~queca ~1, data=umf))
 summary(fm3 <- occu(~queco ~1, data=umf))
-summary(fm4 <- occu(~queca+queco ~1, data=umf))
+summary(fm4 <- occu(~queca+queco ~1, data=umf)) #menorAIC 42.48622
 
-# Put the fitted models in a "fitList" = rank them by AIC
-fms <- fitList("p(.)psi(.)" = fm1,
-	"p(queca)psi(.)" = fm2,
-	"p(queco)psi(.)" = fm3,
-	"p(queca+queco)psi(.)" = fm4)
-(ms <- modSel(fms))
-
-# OR >>>>>> outra maneira de selecionar pelo AIC
+# Selecionar pelo AIC
 cbind(fm1@AIC, fm2@AIC, fm3@AIC, fm4@AIC)       
 
 ### Continue with model fitting for occupancy, guided by AIC as we go
 
 #Check effects of spatial location
-summary(fm10 <- occu(~queca ~lon, data=umf))
-summary(fm11 <- occu(~queca ~lat, data=umf))
-summary(fm12 <- occu(~queca ~lon+lat, data=umf))
-cbind(fm2@AIC, fm10@AIC, fm11@AIC, fm12@AIC) #se menor que modelo nulo mantém
+summary(fm7 <- occu(~queca ~lon, data=umf))
+summary(fm8 <- occu(~queca ~lat, data=umf))
+summary(fm9 <- occu(~queca ~lon+lat, data=umf))
+cbind(fm2@AIC, fm7@AIC, fm8@AIC, fm9@AIC)
 
 #Check effects of water
-summary(fm13 <- occu(~queca ~agua, data=umf))
-summary(fm14 <- occu(~queca ~agdis, data=umf))
-summary(fm15 <- occu(~queca ~agua+agdis, data=umf))
-cbind(fm2@AIC, fm13@AIC, fm14@AIC, fm15@AIC)
+summary(fm12 <- occu(~queca ~agua, data=umf))
+summary(fm13 <- occu(~queca ~agdis, data=umf))
+summary(fm14 <- occu(~queca ~agua+agdis, data=umf))
+cbind(fm2@AIC, fm12@AIC, fm13@AIC, fm14@AIC)
 
 #Check effects of declivity and vegetation cover 
-summary(fm16 <- occu(~queca ~dec, data=umf))
-summary(fm17 <- occu(~queca ~veg, data=umf))
-summary(fm18 <- occu(~queca ~dec+veg, data=umf))
-cbind(fm2@AIC, fm16@AIC, fm17@AIC, fm18@AIC)
+summary(fm17 <- occu(~queca+queco ~dec, data=umf))
+summary(fm18 <- occu(~queca+queco ~veg, data=umf))
+summary(fm19 <- occu(~queca+queco ~dec+veg, data=umf))
+cbind(fm4@AIC, fm17@AIC, fm18@AIC, fm19@AIC)
 
 #Check effects of size, format and isolation
-summary(fm20 <- occu(~queca ~area, data=umf))
-summary(fm21 <- occu(~queca ~par, data=umf))
-summary(fm22 <- occu(~queca ~form, data=umf))
-summary(fm23 <- occu(~queca ~isol, data=umf))
-summary(fm24 <- occu(~queca ~area+par, data=umf))
-summary(fm25 <- occu(~queca ~area+form, data=umf))
-summary(fm26 <- occu(~queca ~area+isol, data=umf))
-summary(fm27 <- occu(~queca ~area+par+isol, data=umf))
-summary(fm28 <- occu(~queca ~areaform+isol, data=umf))
-cbind(fm2@AIC, fm21@AIC, fm22@AIC, fm23@AIC, fm24@AIC, fm25@AIC, fm26@AIC, 
-fm27@AIC, fm28@AIC)
+summary(fm22 <- occu(~queca+queco ~area, data=umf))
+summary(fm23 <- occu(~queca+queco ~par, data=umf)) #menorAIC 38.23625
+summary(fm24 <- occu(~queca+queco ~form, data=umf))
+summary(fm25 <- occu(~queca+queco ~isol, data=umf)) #unico model converge
+summary(fm26 <- occu(~queca+queco ~area+par, data=umf))#40.23049
+summary(fm27 <- occu(~queca+queco ~area+form, data=umf))
+summary(fm28 <- occu(~queca+queco ~area+isol, data=umf))
+summary(fm29 <- occu(~queca+queco ~par+isol, data=umf))#39.98014
+summary(fm30 <- occu(~queca+queco ~area+par+isol, data=umf))#41.9269
+summary(fm31 <- occu(~queca+queco ~area+form+isol, data=umf))
+cbind(fm4@AIC, fm22@AIC, fm23@AIC, fm24@AIC, fm25@AIC, fm26@AIC, fm27@AIC, fm28@AIC,
+fm29@AIC, fm30@AIC, fm31@AIC)
 
 # Check effects of Anthropic Matriz
-summary(fm31 <- occu(~queca ~urbd, data=umf))
-summary(fm32 <- occu(~queca ~agrd, data=umf))
-summary(fm33 <- occu(~queca ~pecd, data=umf))
-summary(fm34 <- occu(~queca ~popq, data=umf))
-summary(fm35 <- occu(~queca ~popq+urbd, data=umf))
-summary(fm36 <- occu(~queca ~popq+agrd, data=umf))
-summary(fm37 <- occu(~queca ~popq+pecd, data=umf))
-summary(fm38 <- occu(~queca ~popq+agrdd+pecd, data=umf))
-summary(fm39 <- occu(~queca ~urbd+agrd, data=umf))
-summary(fm40 <- occu(~queca ~urb+pecd, data=umf))
-summary(fm41 <- occu(~queca ~agrd+pecd, data=umf))
-summary(fm42 <- occu(~queca ~popq+urbd+agrdd+pecd, data=umf))
-cbind(fm2@AIC, fm30@AIC, fm31@AIC, fm32@AIC, fm33@AIC, fm34@AIC, fm35@AIC, 
-fm36@AIC, fm37@AIC, fm38@AIC, fm39@AIC, fm40@AIC, fm41@AIC, fm42@AIC)
+summary(fm32 <- occu(~queca+queco ~urbd, data=umf))#
+summary(fm33 <- occu(~queca+queco ~agrd, data=umf))
+summary(fm34 <- occu(~queca+queco ~pecd, data=umf))
+summary(fm35 <- occu(~queca+queco ~popq, data=umf))
+summary(fm36 <- occu(~queca+queco ~popq+urbd, data=umf))
+summary(fm37 <- occu(~queca+queco ~popq+agrd, data=umf))
+summary(fm38 <- occu(~queca+queco ~popq+pecd, data=umf))
+summary(fm39 <- occu(~queca+queco ~popq+agrd+pecd, data=umf))
+summary(fm40 <- occu(~queca+queco ~urbd+agrd, data=umf))
+summary(fm41 <- occu(~queca+queco ~urbd+pecd, data=umf))
+summary(fm42 <- occu(~queca+queco ~agrd+pecd, data=umf))
+summary(fm43 <- occu(~queca+queco ~popq+urbd+agrd+pecd, data=umf))
+cbind(fm4@AIC, fm32@AIC, fm33@AIC, fm34@AIC, fm35@AIC, fm36@AIC, 
+fm37@AIC, fm38@AIC, fm39@AIC, fm40@AIC, fm41@AIC, fm42@AIC, fm43@AIC)
 
-## Check best models (mantém os melhor das etapas anterior e testa +combinações)
+#Check best models (mantém os melhor das etapas anterior e testa +combinações)
 
-summary(fm50 <- occu(~queca ~, data=umf))
-cbind( ,fm50@AIC, )
+summary(fm50 <- occu(~queca+queco ~par+urbd, data=umf))#38.67757
+cbind(fm4@AIC, fm23@AIC ,fm50@AIC)
 
 
 #################### PLOTAR gráficos de predições UNI-dimensionais   (occu x cov)
