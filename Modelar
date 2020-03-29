@@ -301,25 +301,27 @@ backTransform(linearComb(fm54, c(1,0,0), type="state")) #psi(occu) na variavel m
 #   0.0045 0.00944    -5.4           1   0    0
 
 ## predizer ocupacao para valores especificos da covariavel
-comb_lin_mta <- linearComb(fm54, matrix(c(1,par,0),# valores perim/area ratio padronizada e ordenados			
-							nrow=49, ncol=3,byrow=T), type="state")
+int.par.urbd<-data.frame(1,dec,area)
+mat2<-data.matrix(int.par.urbd) #linearComb só le matrix
+
+comb_lin_mta <- linearComb(fm54, mat2,# valores perim/area ratio padronizada e ordenados			
+					 type="state")
 
 backTransform(comb_lin_mta)
-
-### P mata atlantica
 
 backTransform(linearComb(fm54, c(1,0,0), type="det")) #p(detec) qnd esforco amostral medio
 # Estimate       SE LinComb (Intercept) area queca
 #        1 5.04e-15    36.7           1    0     0
 
+### P mata atlantica
 
-## predizer ocupacao para valores especificos da covariavel
-comb_lin_dtma <- linearComb(fm54, matrix(c(1,area,0),# 1=intercept,valores da variavel do modelo q aparece na coluna do meio, 0=outra variavel (os valores dela sao considerados tbm no resultado)
+## predizer deteccao para valores especificos da covariavel (preciso montar matrix
+#comb_lin_dtma <- linearComb(fm54, matrix(c(1,area,0),# 1=intercept,valores da variavel do modelo q aparece na coluna do meio, 0=outra variavel (os valores dela sao considerados tbm no resultado)
 							nrow=49,ncol=3,byrow=T), type="det")
 
-backTransform(comb_lin_dtma)
+#backTransform(comb_lin_dtma)
 
-#####  Check best models (mantém os melhores d etapas anteriores e testa +combinações) CAATINGA
+##### Check best models (mantém os melhores d etapas anteriores e testa +combinações)  CAATINGA
 
 summary(fm50 <- occu(~area+queco ~dec+area+popq+agrd+pecd, data=umf))#
 summary(fm51 <- occu(~area+queco ~dec+area+popq, data=umf)) #
@@ -352,10 +354,11 @@ backTransform(linearComb(fm57, c(1,0,0), type="state")) #psi(occu) na variavel m
 # Estimate    SE LinComb (Intercept) dec area
 #     0.29 0.101  -0.896           1   0    0
 
-areas<-sort(area)
 ## predizer ocupacao para valores especificos da covariavel
-comb_lin_caat <- linearComb(fm57, matrix(c(1,0,area),# valores area padronizada e ordenados			
-							nrow=46,ncol=3,byrow=T), type="state")
+int.dec.area<-data.frame(1,dec,area)
+mat1<-data.matrix(int.dec.area) #linearComb só le matrix
+
+comb_lin_caat <- linearComb(fm57, mat1,	type="state")
 backTransform(comb_lin_caat)
 
 ### P caatinga
@@ -363,13 +366,6 @@ backTransform(comb_lin_caat)
 backTransform(linearComb(fm57, c(1,0,0), type="det")) #p(detec) qnd esforco amostral medio
 # Estimate     SE LinComb (Intercept) area queco
 #    0.981 0.0214    3.95           1    0     0
-
-
-## predizer ocupacao para valores especificos da covariavel
-comb_lin_dtcaa <- linearComb(fm57, matrix(c(1,area,0),# 1=intercept,valores da variavel do modelo q aparece na coluna do meio, 0=outra variavel (os valores dela sao considerados tbm no resultado)
-							nrow=46,ncol=3,byrow=T), type="det")
-
-backTransform(comb_lin_dtcaa)
 
 
 #################### PLOTAR gráficos de predições UNI-dimensionais   (occu x cov)
