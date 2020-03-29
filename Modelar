@@ -178,66 +178,198 @@ summary(umf)
 # Fit a series of models for detection first and do model selection
 summary(fm1 <- occu(~1 ~1, data=umf))
 summary(fm2 <- occu(~queca ~1, data=umf))
-summary(fm3 <- occu(~queco ~1, data=umf))
-summary(fm4 <- occu(~queca+queco ~1, data=umf)) #menorAIC 42.48622
+summary(fm3 <- occu(~queco ~1, data=umf)) #a 75.3399
+summary(fm4 <- occu(~queca+queco ~1, data=umf)) #menorAIC 97.16106
+summary(fm5 <- occu(~area ~1, data=umf))
+summary(fm6 <- occu(~area+queca ~1, data=umf))
+summary(fm7 <- occu(~area+queco ~1, data=umf))
+summary(fm8 <- occu(~area+queca+queco ~1, data=umf))
 
-# Selecionar pelo AIC
-cbind(fm1@AIC, fm2@AIC, fm3@AIC, fm4@AIC)       
+
+# Put the fitted models in a "fitList" = rank them by AIC
+fms <- fitList('p(.)psi(.)' = fm1,
+	'p(queca)psi(.)' = fm2,
+	'p(queco)psi(.)' = fm3,
+	'p(queca+queco)psi(.)' = fm4,
+	'p(area)psi(.)' = fm5,
+	'p(area+queca)psi(.)' = fm6,
+	'p(area+queco)psi(.)' = fm7,
+	'p(area+queca+queco)psi(.)' = fm8)
+
+ms <- modSel(fms,nullmod='p(.)psi(.)')
+
+# OR >>>>>> outra maneira de selecionar pelo AIC
+cbind(fm1@AIC, fm2@AIC, fm3@AIC, fm4@AIC, fm5@AIC,fm6@AIC,fm7@AIC, fm8@AIC)       
 
 ### Continue with model fitting for occupancy, guided by AIC as we go
 
 #Check effects of spatial location
-summary(fm7 <- occu(~queca ~lon, data=umf))
-summary(fm8 <- occu(~queca ~lat, data=umf))
-summary(fm9 <- occu(~queca ~lon+lat, data=umf))
-cbind(fm2@AIC, fm7@AIC, fm8@AIC, fm9@AIC)
+summary(fm10 <- occu(~area+queca ~lon, data=umf))
+summary(fm11 <- occu(~area+queca ~lat, data=umf))
+summary(fm12 <- occu(~area+queca ~lon+lat, data=umf))
+cbind(fm2@AIC, fm10@AIC, fm11@AIC, fm12@AIC)
 
 #Check effects of water
-summary(fm12 <- occu(~queca ~agua, data=umf))
-summary(fm13 <- occu(~queca ~agdis, data=umf))
-summary(fm14 <- occu(~queca ~agua+agdis, data=umf))
-cbind(fm2@AIC, fm12@AIC, fm13@AIC, fm14@AIC)
+summary(fm13 <- occu(~area+queco ~agua, data=umf))
+summary(fm14 <- occu(~area+queco ~agdis, data=umf))
+summary(fm15 <- occu(~area+queco ~agua+agdis, data=umf))
+cbind(fm2@AIC, fm13@AIC, fm14@AIC, fm15@AIC)
 
 #Check effects of declivity and vegetation cover 
-summary(fm17 <- occu(~queca+queco ~dec, data=umf))
-summary(fm18 <- occu(~queca+queco ~veg, data=umf))
-summary(fm19 <- occu(~queca+queco ~dec+veg, data=umf))
-cbind(fm4@AIC, fm17@AIC, fm18@AIC, fm19@AIC)
+summary(fm16 <- occu(~area+queco ~dec, data=umf)) #a:62.86781
+summary(fm17 <- occu(~area+queco ~veg, data=umf))
+summary(fm18 <- occu(~area+queco ~dec+veg, data=umf)) #a:63.94108
+cbind(fm7@AIC, fm16@AIC, fm17@AIC, fm18@AIC) 
 
 #Check effects of size, format and isolation
-summary(fm22 <- occu(~queca+queco ~area, data=umf))
-summary(fm23 <- occu(~queca+queco ~par, data=umf)) #menorAIC 38.23625
-summary(fm24 <- occu(~queca+queco ~form, data=umf))
-summary(fm25 <- occu(~queca+queco ~isol, data=umf)) #unico model converge
-summary(fm26 <- occu(~queca+queco ~area+par, data=umf))#40.23049
-summary(fm27 <- occu(~queca+queco ~area+form, data=umf))
-summary(fm28 <- occu(~queca+queco ~area+isol, data=umf))
-summary(fm29 <- occu(~queca+queco ~par+isol, data=umf))#39.98014
-summary(fm30 <- occu(~queca+queco ~area+par+isol, data=umf))#41.9269
-summary(fm31 <- occu(~queca+queco ~area+form+isol, data=umf))
-cbind(fm4@AIC, fm22@AIC, fm23@AIC, fm24@AIC, fm25@AIC, fm26@AIC, fm27@AIC, fm28@AIC,
+summary(fm22 <- occu(~area+queco ~area, data=umf)) #a:71.52573
+summary(fm23 <- occu(~area+queco ~par, data=umf)) 
+summary(fm24 <- occu(~area+queco ~form, data=umf))
+summary(fm25 <- occu(~area+queco ~isol, data=umf)) 
+summary(fm26 <- occu(~area+queco ~area+par, data=umf))
+summary(fm27 <- occu(~area+queco ~area+form, data=umf))#71.99155
+summary(fm28 <- occu(~area+queco ~area+isol, data=umf)) #a:72.42166
+summary(fm29 <- occu(~area+queco ~par+isol, data=umf)) #m:39.98014
+summary(fm30 <- occu(~area+queco ~area+par+isol, data=umf))
+summary(fm31 <- occu(~area+queco ~area+form+isol, data=umf))
+cbind(fm7@AIC, fm22@AIC, fm23@AIC, fm24@AIC, fm25@AIC, fm26@AIC, fm27@AIC, fm28@AIC,
 fm29@AIC, fm30@AIC, fm31@AIC)
 
+
 # Check effects of Anthropic Matriz
-summary(fm32 <- occu(~queca+queco ~urbd, data=umf))#
-summary(fm33 <- occu(~queca+queco ~agrd, data=umf))
-summary(fm34 <- occu(~queca+queco ~pecd, data=umf))
-summary(fm35 <- occu(~queca+queco ~popq, data=umf))
-summary(fm36 <- occu(~queca+queco ~popq+urbd, data=umf))
-summary(fm37 <- occu(~queca+queco ~popq+agrd, data=umf))
-summary(fm38 <- occu(~queca+queco ~popq+pecd, data=umf))
-summary(fm39 <- occu(~queca+queco ~popq+agrd+pecd, data=umf))
-summary(fm40 <- occu(~queca+queco ~urbd+agrd, data=umf))
-summary(fm41 <- occu(~queca+queco ~urbd+pecd, data=umf))
-summary(fm42 <- occu(~queca+queco ~agrd+pecd, data=umf))
-summary(fm43 <- occu(~queca+queco ~popq+urbd+agrd+pecd, data=umf))
-cbind(fm4@AIC, fm32@AIC, fm33@AIC, fm34@AIC, fm35@AIC, fm36@AIC, 
-fm37@AIC, fm38@AIC, fm39@AIC, fm40@AIC, fm41@AIC, fm42@AIC, fm43@AIC)
+summary(fm32 <- occu(~area+queco ~urbd, data=umf))
+summary(fm33 <- occu(~area+queco ~agrd, data=umf))#
+summary(fm34 <- occu(~area+queco ~pecd, data=umf))
+summary(fm35 <- occu(~area+queco ~popq, data=umf)) #a:73.69813
+summary(fm36 <- occu(~area+queco ~popq+urbd, data=umf))
+summary(fm37 <- occu(~area+queco ~urbd+agrd, data=umf))
+summary(fm38 <- occu(~area+queco ~urbd+pecd, data=umf))
+summary(fm39 <- occu(~area+queco ~urbd+agrd+pecd, data=umf))
+summary(fm40 <- occu(~area+queco ~urbd+agrd+popq, data=umf))
+summary(fm41 <- occu(~area+queco ~urbd+pecd+popq, data=umf))
+summary(fm42 <- occu(~area+queco ~urbd+agrd+pecd+popq, data=umf))
+summary(fm43 <- occu(~area+queco ~popq+pecd, data=umf)) 
+summary(fm44 <- occu(~area+queco ~popq+agrd, data=umf)) #73.61764
+summary(fm45 <- occu(~area+queco ~popq+agrd+pecd, data=umf))
+summary(fm46 <- occu(~area+queco ~agrd+pecd, data=umf))
+cbind(fm7@AIC, fm32@AIC, fm33@AIC, fm34@AIC, fm35@AIC, fm36@AIC, fm37@AIC, fm38@AIC, 
+fm39@AIC, fm40@AIC, fm41@AIC, fm42@AIC, fm43@AIC, fm44@AIC, fm45@AIC, fm46@AIC)
 
-#Check best models (mantém os melhor das etapas anterior e testa +combinações)
+##### Check best models (mantém os melhores d etapas anteriores e testa +combinações)  MATA ATLANTICA
 
-summary(fm50 <- occu(~queca+queco ~par+urbd, data=umf))#38.67757
-cbind(fm4@AIC, fm23@AIC ,fm50@AIC)
+summary(fm32)
+cbind(fm6AIC, fm17@AIC, fm22@AIC , fm23@AIC, fm26@AIC, fm27@AIC, fm29@AIC, 
+fm30@AIC, fm32@AIC, fm36@AIC, fm37@AIC, fm38@AIC, fm50@AIC)#ma
+
+summary(fm50 <- occu(~area+queca ~veg+par, data=umf))#
+summary(fm51 <- occu(~area+queca ~veg+area+par, data=umf)) #
+summary(fm52 <- occu(~area+queca ~veg+area+isol, data=umf)) #
+summary(fm53 <- occu(~area+queca ~veg+par+isol, data=umf)) #
+summary(fm54 <- occu(~area+queca ~par+urbd, data=umf)) #
+summary(fm55 <- occu(~area+queca ~veg+par+urbd, data=umf)) #
+summary(fm56 <- occu(~area+queca ~par+urbd+popq, data=umf)) #
+summary(fm58 <- occu(~area+queca ~par+urbd+agrd, data=umf)) #
+summary(fm57 <- occu(~area+queca ~par+urbd+pecd, data=umf)) #
+summary(fm59 <- occu(~area+queca ~queca, data=umf))
+summary(fm59 <- occu(~area+queca ~queco, data=umf))
+summary(fm60 <- occu(~area+queca ~queca+queco, data=umf))
+summary(fm61 <- occu(~area+queca ~veg+queca, data=umf))
+summary(fm62 <- occu(~area+queca ~veg+par+queca, data=umf))
+summary(fm63 <- occu(~area+queca ~veg+par+urbd+queca, data=umf))
+summary(fm64 <- occu(~area+queca ~par+queca, data=umf))
+summary(fm65 <- occu(~area+queca ~par+urbd+queca, data=umf))
+summary(fm66 <- occu(~area+queca ~urbd+queca, data=umf))
+
+fms1 <- fitList('p(area+queca)psi(.)'=fm6,
+	'p(area+queca)psi(par)'=fm23,
+	'p(area+queca)psi(urbd)'=fm32,
+	'p(area+queca)psi(veg+par)'=fm50,
+	'p(area+queca)psi(veg+area+isol)'=fm52,
+	'p(area+queca)psi(veg+par+isol)'=fm53,
+	'p(area+queca)psi(veg+par+urbd)'=fm55,
+	'p(area+queca)psi(par+urbd+agrd)'=fm58,
+#	'p(area+queca)psi(par+urbd+pecd)'=fm57,
+	'p(area+queca)psi(par+urbd+popq)'=fm56,
+	'p(area+queca)psi(par+urbd)'=fm54)
+
+ms1 <- modSel(fms1,nullmod='p(area+queca)psi(.)')	#
+
+### PSI mata atlantica
+
+backTransform(linearComb(fm54, c(1,0,0), type="state")) #psi(occu) na variavel media
+# Estimate      SE LinComb (Intercept) par urbd
+#   0.0045 0.00944    -5.4           1   0    0
+
+## predizer ocupacao para valores especificos da covariavel
+comb_lin_mta <- linearComb(fm54, matrix(c(1,par,0),# valores perim/area ratio padronizada e ordenados			
+							nrow=49, ncol=3,byrow=T), type="state")
+
+backTransform(comb_lin_mta)
+
+### P mata atlantica
+
+backTransform(linearComb(fm54, c(1,0,0), type="det")) #p(detec) qnd esforco amostral medio
+# Estimate       SE LinComb (Intercept) area queca
+#        1 5.04e-15    36.7           1    0     0
+
+
+## predizer ocupacao para valores especificos da covariavel
+comb_lin_dtma <- linearComb(fm54, matrix(c(1,area,0),# 1=intercept,valores da variavel do modelo q aparece na coluna do meio, 0=outra variavel (os valores dela sao considerados tbm no resultado)
+							nrow=49,ncol=3,byrow=T), type="det")
+
+backTransform(comb_lin_dtma)
+
+#####  Check best models (mantém os melhores d etapas anteriores e testa +combinações) CAATINGA
+
+summary(fm50 <- occu(~area+queco ~dec+area+popq+agrd+pecd, data=umf))#
+summary(fm51 <- occu(~area+queco ~dec+area+popq, data=umf)) #
+summary(fm52 <- occu(~area+queco ~dec+area+agrd, data=umf)) #
+summary(fm53 <- occu(~area+queco ~dec+area+pecd, data=umf)) #a:59.33758
+summary(fm54 <- occu(~area+queco ~dec+area+popq+agrd, data=umf)) #
+summary(fm55 <- occu(~area+queco ~dec+area+popq+pecd, data=umf)) #aa:60.04566
+summary(fm56 <- occu(~area+queco ~dec+area+agrd+pecd, data=umf)) #
+summary(fm57 <- occu(~area+queco ~dec+area, data=umf)) #a:61.74475
+summary(fm58 <- occu(~area+queco ~dec*area, data=umf)) #a:56.67613
+summary(fm59 <- occu(~area+queco ~dec+veg+area, data=umf))
+summary(fm60 <- occu(~area+queco ~dec+veg+area+popq, data=umf))
+
+fms <- fitList('p(area+queco)psi(.)'=fm7,
+	'p(area+queco)psi(area+dec+popq+pecd)'=fm55,
+	'p(area+queco)psi(area+dec+pecd)'=fm53,
+	'p(area+queco)psi(area+dec+popq)'=fm51,
+	'p(area+queco)psi(area+dec+veg)'=fm59,
+	'p(area+queco)psi(area+dec)'=fm57)
+
+
+ms <- modSel(fms,nullmod='p(area+queco)psi(.)')
+
+cbind(fm7@AIC, fm50@AIC)#caat
+cbind(fm51@AIC, fm52@AIC, fm53@AIC, fm54@AIC,fm55@AIC, fm56@AIC,fm57@AIC,fm58@AIC,fm59@AIC,fm60@AIC)
+
+### PSI caatinga
+
+backTransform(linearComb(fm57, c(1,0,0), type="state")) #psi(occu) na variavel media
+# Estimate    SE LinComb (Intercept) dec area
+#     0.29 0.101  -0.896           1   0    0
+
+areas<-sort(area)
+## predizer ocupacao para valores especificos da covariavel
+comb_lin_caat <- linearComb(fm57, matrix(c(1,0,area),# valores area padronizada e ordenados			
+							nrow=46,ncol=3,byrow=T), type="state")
+backTransform(comb_lin_caat)
+
+### P caatinga
+
+backTransform(linearComb(fm57, c(1,0,0), type="det")) #p(detec) qnd esforco amostral medio
+# Estimate     SE LinComb (Intercept) area queco
+#    0.981 0.0214    3.95           1    0     0
+
+
+## predizer ocupacao para valores especificos da covariavel
+comb_lin_dtcaa <- linearComb(fm57, matrix(c(1,area,0),# 1=intercept,valores da variavel do modelo q aparece na coluna do meio, 0=outra variavel (os valores dela sao considerados tbm no resultado)
+							nrow=46,ncol=3,byrow=T), type="det")
+
+backTransform(comb_lin_dtcaa)
 
 
 #################### PLOTAR gráficos de predições UNI-dimensionais   (occu x cov)
