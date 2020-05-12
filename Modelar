@@ -360,6 +360,8 @@ mat1<-data.matrix(int.dec.area) #linearComb só le matrix
 
 comb_lin_caat <- linearComb(fm57, mat1,	type="state")
 backTransform(comb_lin_caat)
+#->add Shapefile de pontos no QGIS -> Interpolation
+
 
 ### P caatinga
 
@@ -368,7 +370,7 @@ backTransform(linearComb(fm57, c(1,0,0), type="det")) #p(detec) qnd esforco amos
 #    0.981 0.0214    3.95           1    0     0
 
 
-#################### PLOTAR gráficos de predições UNI-dimensionais   (occu x cov)
+#################### PLOTAR gráficos de predições UNI-dimensionais   (occu x cov) tutorial
 
 # Create new covariates for prediction ('prediction covs')
 orig.elev <- seq(200, 2500,,100) # New covs for prediction
@@ -404,6 +406,186 @@ matlines(orig.date, pred.det.date[,3:4], lty = 1, lwd = 1, col = "grey")
 plot(pred.det.dur[[1]] ~ orig.duration, type = "l", lwd = 3, col = "blue", ylim = c(0,1), las
 = 1, ylab = "Pred. detection prob.", xlab = "Survey duration (min)", frame = F)
 matlines(orig.duration, pred.det.dur[,3:4], lty = 1, lwd = 1, col = "grey")
+
+
+################### PLOTAR gráficos de predições UNI-dimensionais   (occu x cov)  pratica
+
+#### CAATINGA
+########### fm57 area+dec
+# Obtain predictions
+#newData1 <- data.frame(area=seq(range(area)[1], range(area)[2], length=46))#sort(area))
+#pred.occ.area <- predict(fm57, type="state", newdata=newData1, append=TRUE)
+
+newData3 <- data.frame(queco=seq(min(queco), max(queco), length=46)
+pred.det.queco <- predict(fm57, type="det", newdata=newData3, appendData=TRUE)
+
+newData1d <- data.frame(area=0,dec=seq(min(dec), max(dec), length=46))
+pred.occ.dec <- predict(fm57, type="state", newdata=newData1d, append=TRUE)
+newData1a <- data.frame(area=seq(min(area), max(area), length=46),dec=0)
+pred.occ.area <- predict(fm57, type="state", newdata=newData1a, append=TRUE)
+
+dp.ori<- data.frame(dec1=seq(min(dec.orig), max(dec.orig), length=46), 
+		area1=seq(min(area.orig), max(area.orig), length=46))
+pred.occ.57d<- data.frame(pred.occ.dec,dp.ori)
+pred.occ.57a<- data.frame(pred.occ.area,dp.ori)
+
+par(mfrow = c(1,2), mar = c(5,5,2,3), cex.lab = 1.2)
+
+## construa os plots
+## ocupacao
+plot(pred.occ.57a$area, pred.occ.57a$Predicted, type="l",lwd=3,xlab="Fragment size",
+     ylab=expression (paste (italic("Sapajus "), "occupancy (",Psi,")",sep=" ")))
+lines(pred.occ.57a$area, pred.occ.57a$lower, lty=2)
+lines(pred.occ.57a$area, pred.occ.57a$upper, lty=2)
+
+plot(pred.occ.57d$dec, pred.occ.57d$Predicted, type="l",lwd=3,xlab="Slope",
+     ylab=expression (paste (italic("Sapajus "), "occupancy (",Psi,")",sep=" ")))
+lines(pred.occ.57d$dec, pred.occ.57d$lower, lty=2)
+lines(pred.occ.57d$dec, pred.occ.57d$upper, lty=2)
+
+
+###### fm51 area+dec+popq
+# Plot predictions against UNSTANDARDIZED 'prediction covs'
+#add coluna data,orig
+adp.ori<- data.frame(dec1=seq(min(dec.orig), max(dec.orig), length=46), 
+		area1=seq(min(area.orig), max(area.orig), length=46), 
+		popq1=seq(min(popq.orig), max(popq.orig), length=46))
+
+newData2d <- data.frame(dec=seq(min(dec), max(dec), length=46), 
+		area=0, popq=0)
+pred.occ.d <- predict(fm51, type="state", newdata=newData2d, append=TRUE)
+
+pred.occ.51d<- data.frame(pred.occ.d,adp.ori)
+
+newData2a <- data.frame(dec=0,area=seq(min(area),max(area),length=46), popq=0)
+pred.occ.a <- predict(fm51, type="state", newdata=newData2a, append=TRUE)
+
+pred.occ.51a<- data.frame(pred.occ.a,adp.ori)
+
+newData2p <- data.frame(dec=0,area=0, popq=seq(min(popq),max(popq),length=46))
+pred.occ.p <- predict(fm51, type="state", newdata=newData2p, append=TRUE)
+
+pred.occ.51p<- data.frame(pred.occ.p,adp.ori)
+
+
+par(mfrow = c(1,3), mar = c(5,5,2,3), cex.lab = 1.2)
+
+## construa os plots
+## ocupacao
+plot(pred.occ.51a$area1, pred.occ.51a$Predicted, type="l",lwd=3,xlab="Fragment size (Km2)",
+     ylab=expression (paste (italic("Sapajus "), "occupancy (",Psi,")",sep=" ")))
+lines(pred.occ.51a$area1, pred.occ.51a$lower, lty=2)
+lines(pred.occ.51a$area1, pred.occ.51a$upper, lty=2)
+
+plot(pred.occ.51d$dec1, pred.occ.51d$Predicted, type="l",lwd=3,xlab="Slope (%)",
+     ylab=expression (paste (italic("Sapajus "), "occupancy (",Psi,")",sep=" ")))
+lines(pred.occ.51d$dec1, pred.occ.51d$lower, lty=2)
+lines(pred.occ.51d$dec1, pred.occ.51d$upper, lty=2)
+
+plot(pred.occ.51p$popq1, pred.occ.51p$Predicted, type="l",lwd=3,xlab="Human population in 100 Km2",
+     ylab=expression (paste (italic("Sapajus "), "occupancy (",Psi,")",sep=" ")))
+lines(pred.occ.51p$popq1, pred.occ.51p$lower, lty=2)
+lines(pred.occ.51p$popq1, pred.occ.51p$upper, lty=2)
+
+
+## deteccao
+plot(pred_detec$esforco,pred_detec$Predicted,type="l",lwd=3,xlab=" Fragment size ( ",
+     ylab=expression (paste (italic("Sapajus "), "detection (p)",sep=" ")))
+lines(pred_detec$esforco,pred_detec$lower)
+lines(pred_detec$esforco,pred_detec$upper)
+
+plot(pred_detec$esforco,pred_detec$Predicted,type="l",lwd=3,xlab=" Deforestation intensity ",
+     ylab=expression (paste (italic("Sapajus "), "detection (p)",sep=" ")))
+lines(pred_detec$esforco,pred_detec$lower)
+lines(pred_detec$esforco,pred_detec$upper)
+
+
+#### MATA ATLANTICA  
+########## fm54 par+urbd
+# Obtain predictions
+newData1 <- data.frame(par=seq(max(par), min(par), length=46), urbd=seq(max(urbd), min(urbd), length=46))
+pred.occ.par <- predict(fm54, type="state", newdata=newData1, appendData=TRUE)
+
+newData3 <- data.frame(queco=sort(queca))
+pred.det.queca <- predict(fm57, type="det", newdata=newData3, appendData=TRUE)
+
+# Plot predictions against UNSTANDARDIZED 'prediction covs'
+# data.orig
+pu.ori<- data.frame(par1=seq(max(par.orig), min(par.orig), length=46), 
+		urbd1=seq(max(urbd.orig), min(urbd.orig), length=46))
+
+newData2p <- data.frame(par=seq(max(par), min(par), length=46), urbd=0)
+pred.occ.p <- predict(fm54, type="state", newdata=newData2p, appendData=TRUE)
+
+pred.occ.54p<- data.frame(pred.occ.p,pu.ori) #add data.orig
+
+newData2u <- data.frame(par=0, urbd=seq(max(urbd), min(urbd), length=46))
+pred.occ.u <- predict(fm54, type="state", newdata=newData2u, appendData=TRUE)
+
+pred.occ.54u<- data.frame(pred.occ.u,pu.ori) #add data.orig
+
+par(mfrow = c(1,2), mar = c(5,5,2,3), cex.lab = 1.2)
+
+## construa os plots
+## ocupacao
+plot(pred.occ.54p$par1,pred.occ.54p$Predicted,type="l",lwd=3,xlab="Perimeter/Area",
+     ylab=expression (paste (italic("Sapajus "), "occupancy (",Psi,")",sep=" ")))
+lines(pred.occ.54p$par1, pred.occ.54p$lower, lty=2)
+lines(pred.occ.54p$par1, pred.occ.54p$upper, lty=2)
+
+plot(pred.occ.54u$urbd1,pred.occ.54u$Predicted,type="l",lwd=3,xlab="Urban matrix distance",
+     ylab=expression (paste (italic("Sapajus "), "occupancy (",Psi,")",sep=" ")))
+lines(pred.occ.54u$urbd1, pred.occ.54u$lower, lty=2)
+lines(pred.occ.54u$urbd1, pred.occ.54u$upper, lty=2)
+
+
+####### fm55 veg+par+urbd
+# Obtain predictions
+
+# Plot predictions against UNSTANDARDIZED 'prediction covs'
+# data.orig
+puv.ori<- data.frame(par1=seq(max(par.orig), min(par.orig), length=46), 
+		urbd1=seq(max(urbd.orig), min(urbd.orig), length=46),
+		veg1=seq(max(veg.orig), min(veg.orig), length=46))
+
+newData3p <- data.frame(veg=0, par=seq(max(par), min(par), length=46), urbd=0)
+pred.occ.3p <- predict(fm55, type="state", newdata=newData3p, appendData=TRUE)
+
+pred.occ.55p<- data.frame(pred.occ.3p,puv.ori) #add data.orig
+
+newData3u <- data.frame(veg=0, par=0, urbd=seq(max(urbd), min(urbd), length=46))
+pred.occ.3u <- predict(fm55, type="state", newdata=newData3u, appendData=TRUE)
+
+pred.occ.55u<- data.frame(pred.occ.3u,puv.ori) #add data.orig
+
+newData3v <- data.frame(veg=seq(max(veg),min(veg),length=46), par=0, urbd=0)
+pred.occ.3v <- predict(fm55, type="state", newdata=newData3v, appendData=TRUE)
+
+pred.occ.55v<- data.frame(pred.occ.3u,puv.ori) #add data.orig
+
+par(mfrow = c(1,3), mar = c(5,5,2,3), cex.lab = 1.2)
+
+## construa os plots
+## ocupacao
+plot(pred.occ.55v$veg1,pred.occ.55v$Predicted,type="l",lwd=3,xlab="Vegetation index",
+     ylab=expression (paste (italic("Sapajus "), "occupancy (",Psi,")",sep=" ")))
+lines(pred.occ.55v$veg1, pred.occ.55v$lower, lty=2)
+lines(pred.occ.55v$veg1, pred.occ.55v$upper, lty=2)
+
+plot(pred.occ.55p$par1,pred.occ.55p$Predicted,type="l",lwd=3,xlab="Perimeter/Area",
+     ylab=expression (paste (italic("Sapajus "), "occupancy (",Psi,")",sep=" ")))
+lines(pred.occ.55p$par1, pred.occ.55p$lower, lty=2)
+lines(pred.occ.55p$par1, pred.occ.55p$upper, lty=2)
+
+plot(pred.occ.55u$urbd1,pred.occ.55u$Predicted,type="l",lwd=3,xlab="Urban matrix distance",
+     ylab=expression (paste (italic("Sapajus "), "occupancy (",Psi,")",sep=" ")))
+lines(pred.occ.55u$urbd1, pred.occ.55u$lower, lty=2)
+lines(pred.occ.55u$urbd1, pred.occ.55u$upper, lty=2)
+
+
+
+
+
 
 
 #################### PLOTAR gráficos de predições BI-dimensionais   (cov x cov x occu)
