@@ -625,6 +625,37 @@ title(main = "Expected squirrel detection prob.", font.main = 1)
 matpoints(as.matrix(data[, 13:15]), as.matrix(data[, 10:12]), pch="+", cex=1)
 
 
+###################### GOD OF FITNESS - GOF -> overdispersion = c-hat
+
+#https://www.rdocumentation.org/packages/AICcmodavg/versions/2.00/topics/mb.gof.test
+#https://rdrr.io/cran/AICcmodavg/man/mb.gof.test.html
+#https://groups.google.com/forum/#!topic/unmarked/R7nbd6GinUI
+
+# Detec: fm1, fm5, fm2, fm3, fm6, fm7, fm4, fm8
+# Caatinga: fm7, fm57, fm51, fm59, fm53, fm55
+# Mata Atlantica: fm6, fm54, fm55, fm56, fm57, fm58
+
+library(AICcmodavg)
+
+##compute observed chi-square
+obs <- mb.chisq(fm8)
+obs
+##round to 4 digits after decimal point
+print(obs, digits.vals = 4)
+
+##compute observed chi-square, assess significance, and estimate c-hat
+obs.boot <- mb.gof.test(fm8, nsim = 3)
+##note that more bootstrap samples are recommended
+##(e.g., 1000, 5000, or 10 000)
+obs.boot
+print(obs.boot, digits.vals = 3, digits.chisq = 4)
+
+
+
+
+
+
+
 ############# CRIAR MAPAS DE DISTRIBUIÇÂO
 
 ####### Load the landscape data
