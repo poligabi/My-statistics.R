@@ -435,11 +435,13 @@ par(mfrow = c(1,2), mar = c(5,5,2,3), cex.lab = 1.2)
 ## ocupacao
 plot(pred.occ.57a$area, pred.occ.57a$Predicted, type="l",lwd=3,xlab="Fragment size",
      ylab=expression (paste (italic("Sapajus "), "occupancy (",Psi,")",sep=" ")))
+axis(2, at=c(0:1))
 lines(pred.occ.57a$area, pred.occ.57a$lower, lty=2)
 lines(pred.occ.57a$area, pred.occ.57a$upper, lty=2)
 
 plot(pred.occ.57d$dec, pred.occ.57d$Predicted, type="l",lwd=3,xlab="Slope",
      ylab=expression (paste (italic("Sapajus "), "occupancy (",Psi,")",sep=" ")))
+axis(2, at=c(0:1))
 lines(pred.occ.57d$dec, pred.occ.57d$lower, lty=2)
 lines(pred.occ.57d$dec, pred.occ.57d$upper, lty=2)
 
@@ -474,6 +476,7 @@ par(mfrow = c(1,3), mar = c(5,5,2,3), cex.lab = 1.2)
 ## ocupacao
 plot(pred.occ.51a$area1, pred.occ.51a$Predicted, type="l",lwd=3,xlab="Fragment size (Km2)",
      ylab=expression (paste (italic("Sapajus "), "occupancy (",Psi,")",sep=" ")))
+axis(2, at=c(0:1))
 lines(pred.occ.51a$area1, pred.occ.51a$lower, lty=2)
 lines(pred.occ.51a$area1, pred.occ.51a$upper, lty=2)
 
@@ -484,6 +487,7 @@ lines(pred.occ.51d$dec1, pred.occ.51d$upper, lty=2)
 
 plot(pred.occ.51p$popq1, pred.occ.51p$Predicted, type="l",lwd=3,xlab="Human population in 100 Km2",
      ylab=expression (paste (italic("Sapajus "), "occupancy (",Psi,")",sep=" ")))
+axis(2, at=c(0:1))
 lines(pred.occ.51p$popq1, pred.occ.51p$lower, lty=2)
 lines(pred.occ.51p$popq1, pred.occ.51p$upper, lty=2)
 
@@ -491,11 +495,13 @@ lines(pred.occ.51p$popq1, pred.occ.51p$upper, lty=2)
 ## deteccao
 plot(pred_detec$esforco,pred_detec$Predicted,type="l",lwd=3,xlab=" Fragment size ( ",
      ylab=expression (paste (italic("Sapajus "), "detection (p)",sep=" ")))
+axis(2, at=c(0:1))
 lines(pred_detec$esforco,pred_detec$lower)
 lines(pred_detec$esforco,pred_detec$upper)
 
 plot(pred_detec$esforco,pred_detec$Predicted,type="l",lwd=3,xlab=" Deforestation intensity ",
      ylab=expression (paste (italic("Sapajus "), "detection (p)",sep=" ")))
+axis(2, at=c(0:1))
 lines(pred_detec$esforco,pred_detec$lower)
 lines(pred_detec$esforco,pred_detec$upper)
 
@@ -530,11 +536,13 @@ par(mfrow = c(1,2), mar = c(5,5,2,3), cex.lab = 1.2)
 ## ocupacao
 plot(pred.occ.54p$par1,pred.occ.54p$Predicted,type="l",lwd=3,xlab="Perimeter/Area",
      ylab=expression (paste (italic("Sapajus "), "occupancy (",Psi,")",sep=" ")))
+axis(2, at=c(0:1))
 lines(pred.occ.54p$par1, pred.occ.54p$lower, lty=2)
 lines(pred.occ.54p$par1, pred.occ.54p$upper, lty=2)
 
 plot(pred.occ.54u$urbd1,pred.occ.54u$Predicted,type="l",lwd=3,xlab="Urban matrix distance",
      ylab=expression (paste (italic("Sapajus "), "occupancy (",Psi,")",sep=" ")))
+axis(2, at=c(0:1))
 lines(pred.occ.54u$urbd1, pred.occ.54u$lower, lty=2)
 lines(pred.occ.54u$urbd1, pred.occ.54u$upper, lty=2)
 
@@ -569,20 +577,23 @@ par(mfrow = c(1,3), mar = c(5,5,2,3), cex.lab = 1.2)
 ## ocupacao
 plot(pred.occ.55v$veg1,pred.occ.55v$Predicted,type="l",lwd=3,xlab="Vegetation index",
      ylab=expression (paste (italic("Sapajus "), "occupancy (",Psi,")",sep=" ")))
+axis(2, at=c(0:1))
 lines(pred.occ.55v$veg1, pred.occ.55v$lower, lty=2)
 lines(pred.occ.55v$veg1, pred.occ.55v$upper, lty=2)
 
 plot(pred.occ.55p$par1,pred.occ.55p$Predicted,type="l",lwd=3,xlab="Perimeter/Area",
      ylab=expression (paste (italic("Sapajus "), "occupancy (",Psi,")",sep=" ")))
+axis(2, at=c(0:1))
 lines(pred.occ.55p$par1, pred.occ.55p$lower, lty=2)
 lines(pred.occ.55p$par1, pred.occ.55p$upper, lty=2)
 
 plot(pred.occ.55u$urbd1,pred.occ.55u$Predicted,type="l",lwd=3,xlab="Urban matrix distance",
      ylab=expression (paste (italic("Sapajus "), "occupancy (",Psi,")",sep=" ")))
+axis(2, at=c(0:1))
 lines(pred.occ.55u$urbd1, pred.occ.55u$lower, lty=2)
 lines(pred.occ.55u$urbd1, pred.occ.55u$upper, lty=2)
 
-
+#ou -> limite do eixo  ylim=c(0:1)
 
 
 
@@ -627,9 +638,9 @@ matpoints(as.matrix(data[, 13:15]), as.matrix(data[, 10:12]), pch="+", cex=1)
 
 ###################### GOD OF FITNESS - GOF -> overdispersion = c-hat
 
-#https://www.rdocumentation.org/packages/AICcmodavg/versions/2.00/topics/mb.gof.test
-#https://rdrr.io/cran/AICcmodavg/man/mb.gof.test.html
-#https://groups.google.com/forum/#!topic/unmarked/R7nbd6GinUI
+#https://www.rdocumentation.org/packages/AICcmodavg/versions/2.00/topics/mb.gof.test  #explica
+#https://rdrr.io/cran/AICcmodavg/man/mb.gof.test.html   #codigo
+#https://groups.google.com/forum/#!topic/unmarked/R7nbd6GinUI   #comentarios sobre overdispersion bons pra carta resposta
 
 # Detec: fm1, fm5, fm2, fm3, fm6, fm7, fm4, fm8
 # Caatinga: fm7, fm57, fm51, fm59, fm53, fm55
@@ -650,7 +661,69 @@ obs.boot <- mb.gof.test(fm8, nsim = 3)
 obs.boot
 print(obs.boot, digits.vals = 3, digits.chisq = 4)
 
+#c.hat >1 (overdispersion); >4(lack of fit)
 
+
+
+##################### when overdispersed -> QUASI-AIC      QAIC
+
+##### https://www.rdocumentation.org/packages/MuMIn/versions/1.43.6/topics/QAIC   #explica
+
+# Based on "example(predict.glm)", with one number changed to create
+# overdispersion
+library(MuMIn)
+budworm <- data.frame(
+    ldose = rep(0:5, 2), sex = factor(rep(c("M", "F"), c(6, 6))),
+    numdead = c(10, 4, 9, 12, 18, 20, 0, 2, 6, 10, 12, 16))
+budworm$SF = cbind(numdead = budworm$numdead,
+    numalive = 20 - budworm$numdead)
+budworm.lg <- glm(SF ~ sex*ldose, data = budworm, family = binomial)
+(chat <- deviance(budworm.lg) / df.residual(budworm.lg))
+
+dredge(budworm.lg, rank = "QAIC", chat = chat)
+dredge(budworm.lg, rank = "AIC")
+
+# A 'hacked' constructor for quasibinomial family object that allows for
+# ML estimation
+hacked.quasibinomial <- function(...) {
+    res <- quasibinomial(...)
+    res$aic <- binomial(...)$aic
+    res
+}
+QAIC(update(budworm.lg, family = hacked.quasibinomial), chat = chat)
+
+
+#### https://cran.r-project.org/web/packages/bbmle/vignettes/quasi.pdf    #codigos diferentes packages
+library(AICcmodavg)
+aictab(list(glmOT.D93,glmT.D93,glmO.D93,glmX.D93),
+modnames=c("OT","T","O","X"),
+c.hat=dfun(glmOT.D93))
+
+library(MuMIn); packageVersion("MuMIn")
+## [1] '1.43.15'
+## from ?QAIC
+x.quasipoisson <- function(...) {
+res <- quasipoisson(...)
+res$aic <- poisson(...)$aic
+res
+}
+glmQOT2.D93 <- update(glmOT.D93,family="x.quasipoisson",
+na.action=na.fail)
+(gg <- dredge(glmQOT2.D93,rank="QAIC", chat=dfun(glmOT.D93)))
+
+
+#### http://listas.inf.ufpr.br/pipermail/r-br/2012-July/006713.html  #codigo para 1 modelo
+
+require(MuMIn) ##Pacote que calcula quasi AIC
+set.seed(122)
+y<- c(mapply(rpois, lambda=c(5,20), MoreArgs=list(n=100)))##Criação da 
+variável resposta
+trat<- gl(2,100) ##Criação dos tratamentos
+m.1<- glm(y~trat,family="poisson")### Distribuição Poisson
+summary(m.1)
+m.2<- glm(y~trat,family="quasipoisson")### Distribuição quasi-Poisson
+summary(m.2)
+QAIC(m.2,chat=deviance(m.2)/df.residual(m.2))## Calculo do quasi AIC
 
 
 
