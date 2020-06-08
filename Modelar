@@ -654,16 +654,26 @@ obs
 ##round to 4 digits after decimal point
 print(obs, digits.vals = 4)
 
-##compute observed chi-square, assess significance, and estimate c-hat
+##compute observed chi-square, assess significance, and estimate c-hat (medida de dispersao)
 obs.boot <- mb.gof.test(fm8, nsim = 3)
 ##note that more bootstrap samples are recommended
 ##(e.g., 1000, 5000, or 10 000)
 obs.boot
 print(obs.boot, digits.vals = 3, digits.chisq = 4)
 
-#c.hat >1 (overdispersion); >4(lack of fit)
+#c.hat >1 (overdispersion); >4(lack-of-fit)
 
-
+#A selecao de modelos candidatos leva em conta o aic, mas tambem o ajuste do modelo baseabdi-se no bootstrap, e a medida de dispersão.
+#Modelos cujos dente aic sai menores que 2 sao aoenas os bons candidatos dentre todis o que vc rodou
+#O teste de hipotese é feito atraves do bootstrap e qui quadrado, que é expresso pelo valor de p.
+#Um bom modelo é aquele que tem bom ajuste, ou seja, que nao apresente diferenca signifucatica entre a estatistica do bootstrap e a dis dados reais. Portanto, esse valor de p precusa ser maior que 0.05 (se for menor é porque ja diferença significativa, certo?)
+#Vc rodou esse bootstrao para poder chegar ao c-hat, entao precisa relatar o valor de p.
+#Ainda assim, vc pode ter mais de um modelo com bom ajuste.
+#Para escolher o melhor, vc fecha com c-hat
+#Se for maior que 1 signifuca que alguma variável influência ainda seus modelos mas que nao foi ke6vada em conta. Pode ser qualquer coisa...inclui fo territorialidade.
+#Se esse valor de c-hat foi menor que 1, pode ser fruto de varias coisas.
+#Vc tem modelos com cerca de 0.95 e de cerca de 1.20
+#Nao significa q sao ruins, vc apebas precisa relatar na sua discussão que ha indicação de que outras variaveis podem estar influenciando a ocupação pelos pregos
 
 ##################### when overdispersed -> QUASI-AIC      QAIC
 
@@ -690,7 +700,7 @@ hacked.quasibinomial <- function(...) {
     res$aic <- binomial(...)$aic
     res
 }
-QAIC(update(budworm.lg, family = hacked.quasibinomial), chat = chat)
+QAIC(update(budworm.lg, family = hacked.quasibinomial), chat = chat) #c.hat global: modelo +complexo
 
 
 #### https://cran.r-project.org/web/packages/bbmle/vignettes/quasi.pdf    #codigos diferentes packages
@@ -720,10 +730,10 @@ y<- c(mapply(rpois, lambda=c(5,20), MoreArgs=list(n=100)))##Criação da
 variável resposta
 trat<- gl(2,100) ##Criação dos tratamentos
 m.1<- glm(y~trat,family="poisson")### Distribuição Poisson
-summary(m.1)
+summary(m.1)			#AIC
 m.2<- glm(y~trat,family="quasipoisson")### Distribuição quasi-Poisson
-summary(m.2)
-QAIC(m.2,chat=deviance(m.2)/df.residual(m.2))## Calculo do quasi AIC
+summary(m.2)			# nao mostra AIC
+QAIC(m.2,chat=deviance(m.2)/df.residual(m.2))## Calculo do quasi AIC, mas nao aparece se chat for <1
 
 
 
