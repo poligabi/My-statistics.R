@@ -79,6 +79,13 @@ datam = subset(data, data$biom == 2)
 str(datam)
 str(dataa)
 
+#or
+data$biom<-as.factor(data$biom)
+is.factor(data$biom)
+
+biom=factor(data$biom,levels=c("1","2"),ordered=TRUE)
+#https://groups.google.com/forum/#!topic/unmarked/84_sddsBjDE
+
 #possivel colocar variavel categorica (ex: estratos) mas ela deve ser numerica
 #se usar letra o R dá erro e fecha
 
