@@ -119,6 +119,22 @@ agrd.orig <- datam[,"monod"]
 pecd.orig <- datam[,"pastd"]
 popq.orig <- datam[,"popq"]
 
+
+# correlation
+corr <- cor(paisagem, method = "spearman")
+corr
+# export
+readr::write_csv(tibble::as_tibble(corr), "paisagem.csv")
+# correlation plot
+corrplot::corrplot(corr, type = "lower", diag = FALSE, tl.srt = 45, mar = c(3, 0.5, 2, 1))
+# export figure
+png("corr.tif", w = 18, he = 18, units = "cm", res = 300)
+corrplot::corrplot(corr, type = "lower", diag = FALSE, tl.srt = 45, mar = c(3, 0.5, 2, 1))
+dev.off()
+## select variables
+# verify as correlaçoes maior ou igual a 0.7 que não podem ser usadas no mesmo modelo
+
+
 quest <- read.table(file = "clipboard", sep = "\t", header=TRUE)
 questm = quest[-c(1:54,89),] 
 edit(questm)
@@ -158,21 +174,7 @@ popq <- (popq.orig - means[10]) / sds[10]
 
 #### OU  >>>>>> primeiro padroniza e depois chama um a um = NAO FUNCIONA NO UNMARKED
 #pais <-decostand(paisagem, method="standardize") 	#Dados padronizados
-#lon.s <- pais[,"Lon"]
-#lat.s <- pais[,"Lat"]
-#alt.s <- pais[,"Alt"]
-dec.s <- pais[,"Dec"]
-veg.s <- pais[,"veg"]
-agua.s <- pais[,"agua"]
-#agdis.s <- pais[,"agdis"]
-area.s <- pais[,"area"]
-par.s <- pais[,"par"]
-form.s <- pais[,"form"]
-isol.s <- pais[,"isol"]
-urbd.s <- pais[,"urbd"]
-agrd.s <- pais[,"agrd"]
-pecd.s <- pais[,"pecd"]
-popq.s <- pais[,"popq"]
+
 
 # Load unmarked, format data and summarize
 library(unmarked)
@@ -724,7 +726,7 @@ print(obs.boot, digits.vals = 3, digits.chisq = 4)
 
 # Based on "example(predict.glm)", with one number changed to create
 # overdispersion
-library(MuMIn)
+library(MuMIn)		#quando usar detache depois, nao da certo junto com pacote AICmodavg
 budworm <- data.frame(
     ldose = rep(0:5, 2), sex = factor(rep(c("M", "F"), c(6, 6))),
     numdead = c(10, 4, 9, 12, 18, 20, 0, 2, 6, 10, 12, 16))
@@ -752,7 +754,7 @@ aictab(list(glmOT.D93,glmT.D93,glmO.D93,glmX.D93),
 modnames=c("OT","T","O","X"),
 c.hat=dfun(glmOT.D93))
 
-library(MuMIn); packageVersion("MuMIn")
+library(MuMIn); packageVersion("MuMIn") #precisa detache depois pois ambos pacote geram erro por terem funcoes d mesmo nome
 ## [1] '1.43.15'
 ## from ?QAIC
 x.quasipoisson <- function(...) {
