@@ -1,0 +1,519 @@
+library(vegan)
+library(unmarked)
+library(AICcmodavg)
+
+progrids <- read.table(file = "clipboard", sep = "\t", header=TRUE, row.names=1)
+str(progrids)
+
+### Correspondence Analisys - CA - Matriz antropica
+
+(progrids.ca <- cca(progrids)) #8 gera erro pois: all row sums must be >0 in the community data matrix 
+summary(progrids.ca) # default scaling 2 -> ja gera os valores dos eixos
+summary(progrids.ca, scaling = 1)  	# LEMBRAR: olhar diferença entre scaling 1 e 2
+
+# Scree plot and broken stick model using vegan’s screeplot.cca() = quanto pesa cada eixo
+screeplot(progrids.ca, bstick = TRUE, npcs = length(progrid.ca$CA$eig)) 
+
+par(mfrow = c(1, 2))
+# Scaling 1: sites are centroids of species
+plot(progrids.ca,
+scaling = 1,
+main = "CA landuse proportions - biplot scaling 1"
+)
+# Scaling 2 (default): species are centroids of sites
+plot(progrids.ca, main = "CA landuse proportions - biplot scaling 2")
+
+#Correlações dos eixos
+
+anmat <- read.table(file = "clipboard", sep = "\t", header=TRUE, row.names=1)
+str(anmat)
+eixos <- read.table(file = "clipboard", sep = "\t", header=TRUE, row.names=1)
+str(eixos)
+
+CAs<- data.frame(anmat,eixos)
+
+# correlation
+corr <- cor(CAs, method = "spearman")
+corr
+# export
+readr::write_csv(tibble::as_tibble(corr), "paisagem.csv")
+# correlation plot
+corrplot::corrplot(corr, type = "lower", diag = FALSE, tl.srt = 45, mar = c(3, 0.5, 2, 1))
+# export figure
+png("corr.tif", w = 18, he = 18, units = "cm", res = 300)
+corrplot::corrplot(corr, type = "lower", diag = FALSE, tl.srt = 45, mar = c(3, 0.5, 2, 1))
+dev.off()
+
+
+
+### Chamar dataset pro unmarked:
+data <- read.table(file = "clipboard", sep = "\t", header=TRUE, row.names=1)
+str(data)
+
+dataa = subset(data, data$biom == 1)
+str(dataa)
+datam = subset(data, data$biom == 2)
+str(datam)
+edit(datam)
+
+#dataa<-dataa[-9,]
+#possivel colocar variavel categorica (ex: estratos) mas ela deve ser numerica
+#se usar letra o R dá erro e fecha
+
+#lon.orig <- dataa[,"Lon"] # Unstandardised, original values of covariates
+#lat.orig <- dataa[,"Lat"]
+slope <- data[,"Dec"]
+nvdi <- data[,"veg"]
+patch.size <- data[,"areaKm2"]
+#max(isol.orig)
+edge.ratio <- data[,"par"]
+#form.orig <- data[,"form"]
+isolation <- data[,"isol"]
+#landuse <- data[,"caf.s1"]
+matriz.prop <- data[,"cadi.s1"]
+human.density <- data[,"densi"]
+paisagem<-data.frame(slope,nvdi,patch.size,edge.ratio,isolation,
+matriz.prop,human.density)
+cor(paisagem)
+
+# correlation
+corr <- cor(paisagem, method = "spearman")
+corr
+# export
+readr::write_csv(tibble::as_tibble(corr), "paisagem.csv")
+# correlation plot
+corrplot::corrplot(corr, type = "lower", diag = FALSE, tl.srt = 45, mar = c(3, 0.5, 2, 1))
+# export figure
+png("corr.tif", w = 18, he = 18, units = "cm", res = 300)
+corrplot::corrplot(corr, type = "lower", diag = FALSE, tl.srt = 45, mar = c(3, 0.5, 2, 1))
+dev.off()
+
+quest <- read.table(file = "clipboard", sep = "\t", header=TRUE,row.names=1)
+#edit(quest)
+str(quest)
+
+prego <- as.matrix(quest[,11:14]) # Monkeys det/nondet data
+
+queca.orig <- as.matrix(quest[,3:6])
+queco.orig <- as.matrix(quest[,7:10])
+
+# Standardise covariates and mean-impute date and duration
+# Compute means and standard deviations
+means <- c(apply(cbind(slope,nvdi,patch.size,edge.ratio,isolation,
+matriz.prop,human.density), 2, mean, na.rm=T)) 
+sds <- c(apply(cbind(slope,nvdi,patch.size,edge.ratio,isolation,
+matriz.prop,human.density), 2, sd, na.rm=T))
+#na.rm=T esse codigo permite q a presença de NA não estrague o calculo 
+
+
+# Scale covariates  => ATENCAO: ordem das medias= ordem usada na funcao acima
+dec <- (slope - means[1]) / sds[1] #conferir para ter certeza de usar os valores certos
+veg <- (nvdi - means[2]) / sds[2]
+area <- (patch.size - means[3]) / sds[3]
+par <- (edge.ratio - means[4]) / sds[4]
+isol <- (isolation - means[5]) / sds[5]
+matp <- (matriz.prop - means[6]) / sds[6]
+dens <- (human.density - means[7]) / sds[7]
+
+# Scale det covariates
+(meanq <- c(queca.orig =mean(c(queca.orig), na.rm = TRUE), queco.orig=mean(c(queco.orig), na.rm = TRUE)))
+(sdq <- c(queca.orig = sd(c(queca.orig),na.rm = TRUE), queco.orig=sd(c(queco.orig), na.rm = TRUE)))
+queca <- (queca.orig - meanq[1]) / sdq[1]
+queca[is.na(queca)] <- 0
+queco <- (queco.orig - meanq[2]) / sdq[2]
+queco[is.na(queco)] <- 0
+
+
+# Load unmarked, format data and summarize
+library(unmarked)
+umf <- unmarkedFrameOccu(y = prego, siteCovs = data.frame(dec = dec, veg = veg,
+area = area, par = par, isol = isol, matp=matp , dens = dens), 
+obsCovs = list(queca = queca, queco = queco))
+summary(umf)
+
+summary(fmg1 <- occu(~area+queca+queco ~dec+area+isol+matp+dens, data=umf))
+#chi-sq=35.0598; p=0.078; c-hat=1.58
+summary(fmg2 <- occu(~area+queca+queco ~dec+veg+area+isol+dens, data=umf))
+#chi-sq=35.8071; p=0.053; c-hat=1.68
+summary(fmg3 <- occu(~area+queca+queco ~dec+par+isol+matp+dens, data=umf))
+#chi-sq=37.7066; p=0.06; c-hat=1.69
+summary(fmg4 <- occu(~area+queca+queco ~dec+veg+par+isol+dens, data=umf))
+#chi-sq=39.3035; p=0.05; c-hat=1.83
+
+library(AICcmodavg)
+set.seed(62)
+##compute observed chi-square, assess significance, and estimate c-hat
+##note that more bootstrap samples are recommended(e.g., 1000, 5000, or 10 000)
+obs.boot <- mb.gof.test(fmg4, nsim = 1000)
+obs.boot
+print(obs.boot, digits.vals = 3, digits.chisq = 2)
+
+
+# Fit a series of models for detection first and do model selection
+summary(fm1 <- occu(~1 ~1, data=umf))
+summary(fm2 <- occu(~queca ~1, data=umf))
+summary(fm3 <- occu(~queco ~1, data=umf)) 
+summary(fm4 <- occu(~queca+queco ~1, data=umf))
+summary(fm5 <- occu(~area ~1, data=umf))
+summary(fm6 <- occu(~area+queca ~1, data=umf))
+summary(fm7 <- occu(~area+queco ~1, data=umf)) #
+summary(fm8 <- occu(~area+queca+queco ~1, data=umf))
+summary(fm9 <- occu(~dens ~1, data=umf)) #151.6
+summary(fm10 <- occu(~dens+area+queco ~1, data=umf)) #143.0687
+summary(fm110 <- occu(~dens+area ~1, data=umf)) #143.0687
+summary(fm112 <- occu(~dens+area+queca ~1, data=umf)) #143.0687
+summary(fm11 <- occu(~dens+area+queca+queco ~1, data=umf)) #145.0686
+
+
+
+aictab(list(fm1, fm5, fm2, fm3, fm6, fm7, fm4, fm8, fm9,fm10,fm110,fm112,fm11),
+modnames=c("C","A","qa","qo","Aqa","Aqo","qaqo","Aqaqo",
+"hd","hdAqo","hdA","hdAqa","hdAqaqo"),
+c.hat=1.68)
+
+# Put the fitted models in a "fitList" = rank them by AIC
+fms <- fitList('p(.)psi(.)' = fm1,
+	'p(queca)psi(.)' = fm2,
+	'p(queco)psi(.)' = fm3,
+	'p(queca+queco)psi(.)' = fm4,
+	'p(area)psi(.)' = fm5,
+	'p(area+queca)psi(.)' = fm6,
+	'p(area+queco)psi(.)' = fm7,
+	'p(area+queca+queco)psi(.)' = fm8,
+	'p(dens)psi(.)' = fm9,
+	'p(dens+area+queco)psi(.)' = fm10,
+	'p(dens+area)psi(.)' = fm110,
+	'p(dens+area+queca)psi(.)' = fm112,
+	'p(dens+area+queca+queco)psi(.)' = fm11)
+
+ms <- modSel(fms,nullmod='p(.)psi(.)')
+
+# OR >>>>>> outra maneira de selecionar pelo AIC
+cbind(fm1@AIC, fm2@AIC, fm3@AIC, fm4@AIC, fm5@AIC,fm6@AIC,fm7@AIC, fm8@AIC)       
+
+### Continue with model fitting for occupancy, guided by AIC as we go
+
+#Check effects of patch covariates excluding correlationated ones 
+summary(fm12 <- occu(~area+queco ~dec, data=umf))
+summary(fm13 <- occu(~area+queco ~veg, data=umf))
+summary(fm14 <- occu(~area+queco ~isol, data=umf))
+summary(fm15 <- occu(~area+queco ~dec+veg, data=umf))
+summary(fm16 <- occu(~area+queco ~dec+isol, data=umf))
+summary(fm17 <- occu(~area+queco ~veg+isol, data=umf))
+
+cbind(fm7@AIC, fm12@AIC, fm13@AIC, fm14@AIC, fm15@AIC, fm16@AIC, fm17@AIC)
+
+aictab(list(fm7, fm12,fm13,fm14,fm15,fm16,fm17),
+modnames=c("C","de","ve","I","deve","deI","veI"),
+c.hat=1.83)
+
+#Check effects of patch covariates including patch size 
+summary(fm22 <- occu(~area+queco ~area, data=umf))
+summary(fm23 <- occu(~area+queco ~area+isol, data=umf))
+summary(fm24 <- occu(~area+queco ~area+dec, data=umf))
+summary(fm25 <- occu(~area+queco ~area+dec+isol, data=umf))
+summary(fm26 <- occu(~area+queco ~area+dec+veg, data=umf))
+
+cbind(fm7@AIC, fm22@AIC, fm23@AIC, fm24@AIC, fm25@AIC, fm26@AIC)
+
+aictab(list(fm7,fm22,fm23,fm24, fm25,fm26),
+modnames=c("C","A","AI","Ade","AdeI","Adeve"),
+c.hat=1.83)
+
+#Check effects of patch covariates including edge ratio
+summary(fm27 <- occu(~area+queco ~par, data=umf)) 
+summary(fm28 <- occu(~area+queco ~par+isol, data=umf))
+summary(fm29 <- occu(~area+queco ~par+dec, data=umf))
+summary(fm30 <- occu(~area+queco ~par+dec+isol, data=umf))
+summary(fm31 <- occu(~area+queco ~par+dec+veg, data=umf))
+
+cbind(fm7@AIC, fm27@AIC, fm28@AIC, fm29@AIC, fm30@AIC, fm31@AIC)
+
+aictab(list(fm7,fm27,fm28,fm29,fm30,fm31),
+modnames=c("C","P","PI","Pde","PdeI","Pdeve"),
+c.hat=1.83)
+
+# Check effects of Anthropic Matriz excluding human.density
+summary(fm32 <- occu(~area+queco ~matp, data=umf))
+summary(fm33 <- occu(~area+queco ~area+dec+matp, data=umf))
+summary(fm34 <- occu(~area+queco ~area+dec+isol+matp, data=umf))
+summary(fm35 <- occu(~area+queco ~par+dec+matp, data=umf))
+summary(fm36 <- occu(~area+queco ~par+dec+isol+matp, data=umf)) 
+
+cbind(fm7@AIC, fm32@AIC, fm33@AIC, fm34@AIC, fm35@AIC, fm36@AIC)
+
+aictab(list(fm7,fm32,fm33, fm34, fm35, fm36),
+modnames=c("C","ma","Adema","AdeIma","Pdema","PdeIma"),
+c.hat=1.83)
+
+# Check effects of human.density
+summary(fm37 <- occu(~area+queco ~dens, data=umf))
+summary(fm38 <- occu(~area+queco ~area+dec+dens, data=umf)) 
+summary(fm39 <- occu(~area+queco ~area+dec+isol+dens, data=umf))
+summary(fm40 <- occu(~area+queco ~par+dec+dens, data=umf))
+summary(fm41 <- occu(~area+queco ~par+dec+isol+dens, data=umf))
+
+cbind(fm7@AIC, fm37@AIC, fm38@AIC, fm39@AIC, fm40@AIC, fm41@AIC)
+
+aictab(list(fm7,fm37,fm38, fm39, fm40, fm41),
+modnames=c("C","hd","Adehd","AdeIhd","Pdehd","PdeIhd"),
+c.hat=1.83)
+
+# Check effects of best models
+aictab(list(fm12,fm24, fm25, fm29, fm33, fm38, fm40, fm39),
+modnames=c("de","Ade","AdeI","Pde","Adema","Adehd","Pdehd","AdeIhd"),
+c.hat=1.83)
+
+
+# Check effects of fluxogram
+summary(fm41 <- occu(~area+queco ~matp*dens, data=umf))
+summary(fm42 <- occu(~area+queco ~dec*dens, data=umf))
+summary(fm43 <- occu(~area+queco ~dec*matp, data=umf)) 
+summary(fm44 <- occu(~area+queco ~dec*veg, data=umf))
+summary(fm45 <- occu(~area+queco ~veg*par, data=umf))
+summary(fm46 <- occu(~area+queco ~matp*isol, data=umf))
+summary(fm47 <- occu(~area+queco ~matp*area, data=umf))
+summary(fm48 <- occu(~area+queco ~matp*par, data=umf))
+summary(fm49 <- occu(~area+queco ~area+dec*dens, data=umf))
+summary(fm50 <- occu(~area+queco ~area+dec*matp, data=umf))
+#summary(fm51 <- occu(~area+queco ~dec+area+isol+matp, data=umf))
+#summary(fm52 <- occu(~area+queco ~dec+veg+area+isol+dens, data=umf))
+#summary(fm53 <- occu(~area+queco ~dec+par+isol+matp, data=umf))
+#summary(fm54 <- occu(~area+queco ~dec+veg+par+isol+dens, data=umf))
+
+cbind(fm7@AIC,fm42@AIC,fm43@AIC,fm44@AIC,fm45@AIC,fm46@AIC,fm47@AIC,fm48@AIC)
+
+aictab(list(fm7,fm12,fm13,fm14,fm22,fm27,fm32,fm37, 
+fm41,fm42,fm43,fm44,fm45,fm46,fm47,fm48, fm49,fm50),
+modnames=c("C","de","ve","I","A","P","ma","hd",
+"ma.hd","de.hd","de.ma","de.ve","ve.P","ma.I","ma.A","ma.P",
+"Ade.hd","Ade.ma"),
+c.hat=1.68)
+
+#Selection by AIC
+fms1 <- fitList('p(area+queco)psi(.)' = fm7,
+	'p(area+queco)psi(dec)' = fm12,
+	'p(area+queco)psi(veg)' = fm13,
+	'p(area+queco)psi(isol)' = fm14,
+	'p(area+queco)psi(area)' = fm22,
+	'p(area+queco)psi(par)' = fm27,
+	'p(area+queco)psi(matp)' = fm32,
+	'p(area+queco)psi(dens)' = fm37,
+	'p(area+queco)psi(area+dec)' = fm24,
+	'p(area+queco)psi(matp*dens)' = fm41,
+	'p(area+queco)psi(dec*dens)' = fm42,
+	'p(area+queco)psi(dec*matp)' = fm43,
+	'p(area+queco)psi(dec*veg)' = fm44,
+	'p(area+queco)psi(veg*par)' = fm45,
+	'p(area+queco)psi(matp*isol)' = fm46,
+	'p(area+queco)psi(matp*area)' = fm47,
+	'p(area+queco)psi(matp*par)' = fm48,
+	'p(area+queco)psi(area+dec*dens)' = fm49,
+	'p(area+queco)psi(area+dec*matp)' = fm50)
+
+ms1 <- modSel(fms1,nullmod='p(area+queco)psi(.)')
+
+# Check effects of all models 
+#aictab(list(fm12,fm13,fm14,fm15,fm16,fm17, fm22,fm23,fm24,fm25,fm26,
+#fm27,fm28,fm29,fm30,fm31, fm32,fm33,fm34,fm35,fm36, fm37,fm38,fm39,fm40,fm41),
+#modnames=c("de","ve","I","deve","deI","veI",
+#"A","AI","Ade","AdeI","Adeve", "P","PI","Pde","PdeI","Pdeve",
+#"ma","Adema","AdeIma","Pdema","PdeIma","hd","Adehd","AdeIhd","Pdehd","PdeIhd"),
+#c.hat=1.68)
+
+## God of fitness
+set.seed(62)
+##compute observed chi-square, assess significance, and estimate c-hat
+obs.boot <- mb.gof.test(fm12, nsim = 1000)
+print(obs.boot, digits.vals = 3, digits.chisq = 2)
+
+
+### PSI 
+
+backTransform(linearComb(fm49, c(1,0), type="state")) #psi(occu) na variavel media
+ Estimate     SE LinComb (Intercept) area dec dens dec:dens
+   0.0965 0.0437   -2.24           1    0   0    0        0
+
+
+## predizer ocupacao para valores especificos da covariavel
+int.adehd<-data.frame(1,area,dec,dens, dec*dens)
+mat2<-data.matrix(int.adehd) #linearComb só le matrix
+
+comb_lin_mta <- linearComb(fm49, mat2,# valores perim/area ratio padronizada e ordenados			
+					 type="state")
+backTransform(comb_lin_mta)
+
+
+### P
+
+backTransform(linearComb(fm49, c(1,0,0), type="det")) #p(detec) qnd esforco amostral medio
+# Estimate     SE LinComb (Intercept) area queco
+#    0.953 0.0351    3.02           1    0     0
+
+
+
+################### PLOTAR gráficos de predições UNI-dimensionais   (occu x cov)
+
+# Covariates for prediction ('prediction covs')
+#fm49 area+dec+dens+dec*dens
+
+# Plot predictions against UNSTANDARDIZED 'prediction covs'
+#add coluna data,orig
+add.ori<- data.frame(area1=seq(min(area.orig), max(area.orig), length=97),
+			dec1=seq(min(dec.orig), max(dec.orig), length=97),
+			dens1=seq(min(human.density), max(human.density), length=97)
+#			ded= seq(min(dec.orig), max(dec.orig), length=97)
+#			*seq(min(human.density), max(human.density), length=97)
+)
+
+newData2a <- data.frame(area=seq(min(area),max(area),length=97),dec=0,dens=0)
+pred.occ.a <- predict(fm49, type="state", newdata=newData2a, append=TRUE)
+pred.occ.49a<- data.frame(pred.occ.a,add.ori)
+
+newData2d <- data.frame(area=0,dec=seq(min(dec), max(dec), length=97),dens=0)
+pred.occ.d <- predict(fm49, type="state", newdata=newData2d, append=TRUE)
+pred.occ.49d<- data.frame(pred.occ.d,add.ori)
+
+newData2p <- data.frame(area=0,dec=0,dens=seq(min(dens),max(dens),length=97))
+pred.occ.p <- predict(fm49, type="state", newdata=newData2p, append=TRUE)
+pred.occ.49p<- data.frame(pred.occ.p,add.ori)
+
+
+	#ded=seq(min(dec),max(dec),length=97)*seq(min(dens),max(dens),length=97)
+#newData2dd <- data.frame(area=0,dec=0,dens=0,dec:dens=ded)
+#pred.occ.dd <- predict(fm49, type="state", newdata=newData2p, append=TRUE)
+#pred.occ.49dd<- data.frame(pred.occ.p,add.ori)
+
+par(mfrow = c(1,3), mar = c(5,5,2,3), cex.lab = 1.8)
+
+## construa os plots
+## ocupacao
+plot(pred.occ.49a$area1, pred.occ.49a$Predicted, type="l",lwd=4,ylim=c(0:1),xlab="Fragment size (Km²)",
+     ylab=expression (paste (italic("Sapajus "), "occupancy (",Psi,")",sep=" ")))
+lines(pred.occ.49a$area1, pred.occ.49a$lower, lty=2)
+lines(pred.occ.49a$area1, pred.occ.49a$upper, lty=2)
+
+plot(pred.occ.49p$dens1, pred.occ.49p$Predicted, type="l",lwd=4,ylim=c(0:1),xlab="Human density (indiv/Km²)",
+     ylab=expression (paste (italic("Sapajus "), "occupancy (",Psi,")",sep=" ")))
+lines(pred.occ.49p$dens1, pred.occ.49p$lower, lty=2)
+lines(pred.occ.49p$dens1, pred.occ.49p$upper, lty=2)
+
+plot(pred.occ.49d$dec1, pred.occ.49d$Predicted, type="l",lwd=4,ylim=c(0:1),xlab="Slope (%)",
+     ylab=expression (paste (italic("Sapajus "), "occupancy (",Psi,")",sep=" ")))
+lines(pred.occ.49d$dec1, pred.occ.49d$lower, lty=2)
+lines(pred.occ.49d$dec1, pred.occ.49d$upper, lty=2)
+
+################ BAR-PLOT
+
+library (ggplot2)
+x<- read.table(file = "clipboard", sep = "\t", header=TRUE)
+str(x)
+
+limits1 <- aes(ymax = x$area.m + x$area.d,
+              ymin = x$area.m - x$area.d)
+limits2 <- aes(ymax = x$hd.m + x$hd.d,
+              ymin = x$hd.m - x$hd.d)
+limits3 <- aes(ymax = x$dec.m + x$dec.d,
+              ymin = x$dec.m - x$dec.d)
+
+# Because the bars and errorbars have different widths
+# we need to specify how wide the objects we are dodging are
+
+theme_update(text = element_text(size=15))
+p1 <- ggplot(x, aes(fill=Psi, y=area.m, x=Bioma))
+p1 + geom_bar(stat = "identity", colour="black",
+             position = position_dodge(0.9)) +
+  geom_errorbar(limits1, position = position_dodge(0.9),
+                width = 0.25)  +
+  labs( y = "Fragment size (Km²)") +
+   scale_fill_discrete(name = "Psi") +
+	scale_fill_manual(values=c("#FFFFFF","#080808")) 
+#  theme_bw()
+
+p2 <- ggplot(x, aes(fill=Psi, y=hd.m, x=Bioma))
+p2 + geom_bar(stat = "identity", colour="black",
+             position = position_dodge(0.9)) +
+  geom_errorbar(limits2, position = position_dodge(0.9),
+                width = 0.25)  +
+  labs( y = "Human density (indiv/Km²)") +
+  scale_fill_discrete(name = "Psi")+
+	scale_fill_manual(values=c("#FFFFFF","#080808")) 
+#  theme_bw()
+
+p3 <- ggplot(x, aes(fill=Psi, y=dec.m, x=Bioma))
+p3 + geom_bar(stat = "identity", colour="black",
+             position = position_dodge(0.9)) +
+  geom_errorbar(limits3, position = position_dodge(0.9),
+                width = 0.25)  +
+  labs( y = "Slope (%)") +
+    scale_fill_discrete(name = "Psi") +
+	scale_fill_manual(values=c("#FFFFFF","#080808")) 
+#  theme_bw()
+
+#https://www.it-swarm.dev/pt/r/alterando-o-tamanho-da-fonte-e-direcao-do-texto-dos-eixos-em-ggplot2/1070504291/
+#################### PLOTAR gráficos de predições BI-dimensionais   (cov x cov x occu)
+#CAATINGA
+#orig.area <- sort(area.orig[1:47]) # New covs for prediction
+#orig.dec <- sort(dec.orig[1:57])
+#arr<-orig.area[-36]
+#dee<-orig.dec[-36]
+
+#ar <- (orig.area - means[3]) / sds[3] 
+#de <- (orig.dec - means[1]) / sds[1]
+
+ar<-seq(min(area),max(area),(max(area)-min(area))/100)
+de<-seq(min(dec),max(dec),(max(dec)-min(dec))/100) 	
+#ao dividir por 100 ficaras com 101
+head(means)
+arrr=ar*sds[3]+means[3] #para voltarmos a escala original
+deee=de*sds[1]+means[1]
+
+area1=seq(min(area.orig), max(area.orig), (max(area)-min(area))/100)
+ded= seq(min(dec.orig), max(dec.orig), length=97)*seq(min(human.density), max(human.density), length=97)
+ded1=seq(min(ded),max(ded),(max(ded)-min(ded))/100) 
+
+# Predict occu and detection jointly along two separate covariate gradients
+# occu ~ (area,dec) and detection ~ (area, queco)
+pred.matrix1 <- pred.matrix2 <- array(NA, dim = c(101,101)) # Define arrays
+for(i in 1:101){
+for(j in 1:101){
+newData1 <- data.frame(area=ar[i],dec=de[j]) # 
+pred <- predict(fm49, type="state", newdata=newData1)
+pred.matrix1[i, j] <- pred$Predicted
+}}
+
+
+#par(mfrow = c(1,2), cex.lab = 1.2)
+mapPalette <- colorRampPalette(c("grey", "yellow", "orange", "red"))
+#ate aqui ok
+image(x=arrr, y=deee, z=pred.matrix1, col = mapPalette(101), axes = FALSE,
+xlab = "AreaKm2", ylab = "Declivity")
+contour(x=arrr, y=deee, z=pred.matrix1, add = TRUE, lwd = 1.5, col = "blue",
+labcex = 1.3)
+axis(1, at = seq(min(1), max(55), by = 4))
+axis(2, at = seq(min(1), max(44), by = 6))
+box()
+title(main = "Expected monkey occurrence prob. at Caatinga", font.main = 1)
+fragm <- substring(row.names(dataa), 1, 1)
+points(dataa$Dec, dataa$areaKm2, pch=fragm, cex=1)
+
+
+
+# DETECCAO
+for(i in 1:47){
+for(j in 1:47){
+newData2 <- data.frame(queca=queca[i], queco=queco[j]) # For detection
+pred <- predict(fm57, type="det", newdata=newData2)
+pred.matrix2[i, j] <- pred$Predicted
+}}
+image(x=orig.duration, y=orig.date, z=pred.matrix2, col = mapPalette(100), axes = FALSE,
+xlab = "Survey duration [min]", ylab = "Date (1 = April 1)")
+contour(x=orig.duration, y=orig.date, z=pred.matrix2, add = TRUE, lwd = 1.5, col = "blue",
+labcex = 1.3)
+axis(1, at = seq(min(orig.duration), max(orig.duration), by = 50))
+axis(2, at = seq(0, 100, by = 10))
+box()
+title(main = "Expected monkey detection prob. at Caatinga", font.main = 1)
+matpoints(as.matrix(data[, 13:15]), as.matrix(data[, 10:12]), pch="+", cex=1)
+
+
