@@ -7,6 +7,7 @@ Tudo que vou usando nos meus trabalhos academicos
 Copiar e colar tabela no R:
 > x <- read.table(file = "clipboard", sep = "\t", header=TRUE)  
 > x
+
 > dados <- read.table(file="clipboard",sep="\t",header=T, dec=",") #dec= se os dados usarem virgula como decimal
 
 Google do R : http://rseek.org/
