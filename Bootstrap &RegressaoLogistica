@@ -16,10 +16,9 @@ for(i in 1:10){
   B[i,] = sample(x, size = length(x), replace = TRUE) %>% sort()
 }
 
+########
 
-###########
-
-# Split treino teste            ##https://medium.com/data-hackers/introdu%C3%A7%C3%A3o-ao-tidymodels-em-r-d4188f63c9e1
+# Split treino teste		####https://medium.com/data-hackers/introdu%C3%A7%C3%A3o-ao-tidymodels-em-r-d4188f63c9e1
 quakes_split <- initial_split(df, strata = mag)
 quakes_split
 
@@ -39,7 +38,7 @@ require(readr)
 m1=glm(Y~Elev, family = binomial(link="logit"), data = test1) #Y~modelo
 summary(m1)
 
-### Filtrando a idade dos indivíduos
+# Filtrando a idade dos indivíduos
 ELEV <- data.frame(Elev = test1$Elev) 
 
 # Criando campo de predição para cada idade dos indivíduos 
@@ -62,15 +61,15 @@ logitor(Y~Elev,data = test1)
 #intervalo de confiança
 exp(cbind(OR=coef(m1), confint(m1)))
 
-## Predição de Probabilidades
-#chance de ocorrer Y com relação à uma determinada Elev  
-mediaE = data.frame(Elev=mean(test1$Elev))             ##não pode ter NA
+#predição de probabilidades
+#chance de ocorrer Y com relação à uma determinada Elev
+mediaE = data.frame(Elev=mean(test1$Elev))
 mediaE
 
 mediaE$pred.prob = predict(m1, newdata=mediaE, type="response")
 mediaE
 
-## MATRIZ DE CONFUSAO                         ##usa dados em forma de fator
+#MATRIZ DE CONFUSAO
 require(caret)
 
 test1$pdata <- as.factor(
@@ -81,9 +80,11 @@ test1$pdata <- as.factor(
         >0.5,"1","0"))
 
 confusionMatrix(factor(test1$pdata), factor(test1$Y), positive="1")
-##We have to keep in mind that both levels should be the same.
+#We have to keep in mind that both levels should be the same.
 #table(factor(pred, levels=min(test):max(test)), factor(test, levels=min(test):max(test)))
 # table = confusion matrix
+
+
 
 
 
@@ -132,9 +133,6 @@ vif(logit)
 
 
 
-
-
-
 #######BOOTSTRAPPING REGRESSION MODELS  #https://docs.ufpr.br/~taconeli/CE22518/Bootstrap.pdf
 
 regression_object=glm(Y~modelo, family=binomial(link="logit"))
@@ -145,7 +143,46 @@ Boot(regression_object, f, labels, R = 999, method)
 #method="case"(the default for case resampling)
 #method="residual"(ex: experiments, fix pairs of variables and resample the residuals 
 
+require(car)
+require(boot)
 
+rm1 <- rlm(Y ~ Elev, data=test1, maxit=200)
+rm1.boot <- Boot(rm1, R=1999)
+
+summary(rm1.boot, high.moments=TRUE)
+
+
+confint(rm1.boot, level=.90, type="norm")
+
+hist(rm1.boot, legend="separate")
+
+#Figure 3: Jackknife-after-bootstrap plot for the elevation (a) and ground slope (b) coecients in the
+# regression for monkeys' occupation data.
+jack.after.boot(rm1.boot, index=2, main="(a) Elevation")
+
+plot(rm1.boot)
+
+
+
+### Filtrando a idade dos indivíduos
+ELEV <- data.frame(Elev = test1$Elev) 
+
+# Criando campo de predição para cada idade dos indivíduos 
+test1$PRED=predict(rm1, newdata=ELEV, type="response")
+
+# Plotando a probabilidade predita pelo modelo
+require(ggplot2)
+ggplot(test1, aes(x=Elev, y=PRED)) + 
+  geom_point()
+
+
+## Predição de Probabilidades
+#chance de ocorrer Y com relação à uma determinada Elev  
+mediaE = data.frame(Elev=mean(test1$Elev))             ##não pode ter NA
+mediaE
+
+mediaE$pred.prob = predict(rm1, newdata=mediaE, type="response")
+mediaE
 
 
 #https://rpubs.com/vadimus/bootstrap
@@ -172,9 +209,6 @@ coef.boot <- boot(data=data, statistic=myLogitCoef, R=1000,
                   # process in parallel across 4 CPU cores
                   parallel = 'snow', ncpus=4, cl=cl)
 stopCluster(cl)
-
-
-
 
 
 
