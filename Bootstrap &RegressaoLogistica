@@ -160,7 +160,7 @@ hist(rm1.boot, legend="separate")
 # regression for monkeys' occupation data.
 jack.after.boot(rm1.boot, index=2, main="(a) Elevation")
 
-plot(rm1.boot)
+plot(rm1.boot, index=2)
 
 
 
@@ -180,7 +180,7 @@ str(rm1.boot)         #pra descobrir que colunas são essas
 coefs <- rbind(rm1.boot$_coef_intercept, rm1.boot$_coef_x1)
 
 
-#Plotting the results on the project step-by-spet
+#PLOTTING the results on the project step-by-spet
 plot(
   y ~ x,
   col = "gray",
@@ -206,10 +206,47 @@ legend("topleft",
        cex = 0.8)
 
 
+##### Combining the results in a TABLE
+means.boot = c(mean(sample_coef_intercept), mean(sample_coef_x1))
+knitr::kable(round(
+  cbind(
+    population = coef(summary(population.model))[, 1],
+    sample = coef(summary(sample.model))[, 1],
+    bootstrap = means.boot),4), 
+  "simple", caption = "Coefficients in different models")
+
+confint(population.model)
+confint(sample.model)
+a <-
+  cbind(
+    quantile(sample_coef_intercept, prob = 0.025),
+    quantile(sample_coef_intercept, prob = 0.975))
+b <-
+  cbind(quantile(sample_coef_x1, prob = 0.025),
+        quantile(sample_coef_x1, prob = 0.975))
+
+c <-
+  round(cbind(
+    population = confint(population.model),
+    sample = confint(sample.model),
+    boot = rbind(a, b)), 4)
+colnames(c) <- c("2.5 %", "97.5 %",
+                 "2.5 %", "97.5 %",
+                 "2.5 %", "97.5 %")
+knitr::kable(rbind(
+  c('population',
+    'population',
+    'sample',
+    'sample',
+    'bootstrap',
+    'bootstrap'),c))
+
+
+
 
 #https://rpubs.com/vadimus/bootstrap
-#This allows the user to handle multiple bootstrap samples in parallel, 
-#which cuts down on processing time and 
+##### This allows the user to handle MULTIPLE bootstrap samples in parallel, 
+#which cuts down on PROCSSING TIME and 
 #allows to keep the number of repetitions R sufficiently large
 library(boot)
 library(parallel)
