@@ -164,25 +164,47 @@ plot(rm1.boot)
 
 
 
-### Filtrando a idade dos indivíduos
-ELEV <- data.frame(Elev = test1$Elev) 
+#### https://github.com/serafimpetrov1/bootstrap/blob/main/BootReg.R
 
-# Criando campo de predição para cada idade dos indivíduos 
-test1$PRED=predict(rm1, newdata=ELEV, type="response")
+#Predicting on new data
+new.data = seq(min(x), max(x), by = 0.05)
+conf_interval <-
+  predict(
+    sample.model,                                      #sample.model <- lm(y ~ x, data = sample.data)
+    newdata = data.frame(x = new.data),
+    interval = "confidence",
+    level = 0.95)
 
-# Plotando a probabilidade predita pelo modelo
-require(ggplot2)
-ggplot(test1, aes(x=Elev, y=PRED)) + 
-  geom_point()
+ #coefs <- rbind(sample_coef_intercept, sample_coef_x1) 
+str(rm1.boot)         #pra descobrir que colunas são essas
+coefs <- rbind(rm1.boot$_coef_intercept, rm1.boot$_coef_x1)
 
 
-## Predição de Probabilidades
-#chance de ocorrer Y com relação à uma determinada Elev  
-mediaE = data.frame(Elev=mean(test1$Elev))             ##não pode ter NA
-mediaE
+#Plotting the results on the project step-by-spet
+plot(
+  y ~ x,
+  col = "gray",
+  xlab = "x",
+  ylab = "y",
+  main = "Compare regressions")
+apply(coefs, 2, abline, col = rgb(1, 0, 0, 0.03))                           
+abline(coef(population.model)[1], coef(population.model)[2], col = "blue")              #population.model <- lm(y ~ x, population.data)
+abline(coef(sample.model)[1],
+       coef(sample.model)[2],
+       col = "black",
+       lty = 2, lwd=3)
+abline(mean(sample_coef_intercept),                        #model_bootstrap$coefficients[1]
+       mean(sample_coef_x1),                                      #model_bootstrap$coefficients[2]
+       col = "green",
+       lty = 4, lwd=3)
+lines(new.data, conf_interval[, 2], col = "black", lty = 3, lwd=3)           #new.data = seq(min(x), max(x), by = 0.05)
+lines(new.data, conf_interval[, 3], col = "black", lty = 3, lwd=3)
+legend("topleft",
+       legend = c("Bootstrap", "Population", 'Sample'),
+       col = c("red", "blue", 'green'),
+       lty = 1:3,
+       cex = 0.8)
 
-mediaE$pred.prob = predict(rm1, newdata=mediaE, type="response")
-mediaE
 
 
 #https://rpubs.com/vadimus/bootstrap
