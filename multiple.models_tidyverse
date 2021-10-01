@@ -1,9 +1,46 @@
 
 ### Starting with tidyverse Books:
-#https://r4ds.had.co.nz/workflow-basics.html
+#https://r4ds.had.co.nz/data-import.html
 #https://www.tidymodels.org/start/models/
 #https://moderndive.com/4-tidy.html
 #https://supervised-ml-course.netlify.app/
+
+######## TIDY DATA (transformando colunas excessivas de uma mesma variável em 2 coluna, 1 com os valores e outra com os nomes das colunas
+data_tidy <- data %>% 
+  pivot_longer(names_to = "year",     #conterá os nomes das colunas orig
+               values_to = "score",   #conterá os valores
+               values_drop_na = TRUE  #expliciar que há ausencias nos dados
+               cols = -local,         #tidy todas as colunas menos essa ou:
+               #cols = c(1984:2021),
+               names_transform = list(year = as.integer)) 
+  #Há tbm o inverso, se você coloca uma coluna para tipos de variáveis (ex:escalas) que deveriam ter cada uma sua própia coluna
+  table2 %>%
+    pivot_wider(names_from = escalas, values_from = count)
+
+####### filtrando              
+drinks_smaller <- drinks %>% 
+  filter(country %in% c("USA", "China", "Italy", "Saudi Arabia")) %>% #filtra so esses países
+  select(-total_litres_of_pure_alcohol) %>%                           #seleciona todas col menos essa
+  rename(beer = beer_servings, spirit = spirit_servings, wine = wine_servings)      #renomeia pra nome mais facil
+
+###### To COMBINE the tidied versions of table4a and table4b into a single tibble dplyr::left_join()
+tidy4a <- table4a %>%  #primeiro tidied
+  pivot_longer(c(`1999`, `2000`), names_to = "year", values_to = "cases")
+tidy4b <- table4b %>% 
+  pivot_longer(c(`1999`, `2000`), names_to = "year", values_to = "population")
+left_join(tidy4a, tidy4b, by="local") #depois combina
+      #it preserves the original observations even when there isn’t a match. The left join should be your default join  
+  ####### RELATIONAL DATA (multiplas tabelas com dados relacionados ex: matrix de sp e de ambientais
+  #https://r4ds.had.co.nz/relational-data.html
+  ### KEY variavel que identifica a observação unica
+#An inner join keeps observations that appear in both tables
+x %>% 
+  inner_join(y, by = "key")
+#A left join keeps all observations in x(add NA on col y). Default pois add mantendo a quantidade de linhas original
+#A right join keeps all observations in y(add NA on col x).
+#A full join keeps all observations in x and y (add lines to do it).
+#by = NULL, uses all variables that appear in both tables, the so called natural join (default)
+#by = c("a" = "b"). This will match variable a in table x to variable b in table y (2col que representam =var mas com nomes =!)
 
 
 #### Plotting multiple response variables in ggplot2 ###
