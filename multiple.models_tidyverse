@@ -68,15 +68,13 @@ tidy_lm <- tidy_yields %>%
 slopes <- tidy_lm %>%
   mutate(coefs = map(model, tidy)) %>%
   unnest(coefs) %>%
-  filter(term == "year") %>%
+  filter(term == "year") %>%            #filtrar as sp
   mutate(p.value = p.adjust(p.value))   #intercept das sp
-  
-  
 
 #Now we can visualize the results of this modeling, which is estimating how crop yields are changing around the world.
 library(ggrepel)
 slopes %>%
-  ggplot(aes(estimate, p.value, label = entity)) +  #riqueza
+  ggplot(aes(estimate, p.value, label = entity)) +  #riqueza OR intercept das sp
   geom_vline(
     xintercept = 0, lty = 2,
     size = 1.5, alpha = 0.7, color = "gray50"
@@ -87,9 +85,44 @@ slopes %>%
   geom_text_repel(size = 3, family = "IBMPlexSans") +
   theme_light(base_family = "IBMPlexSans") +
   theme(strip.text = element_text(family = "IBMPlexSans-Bold", size = 12)) +
-  labs(x = "increase in ndvi rate per year")
+  labs(x = "increase in NDVI rate per year")
 
 
+#https://juliasilge.com/blog/superbowl-conf-int
+#model AREA por riqueza controlando por sp
+
+simple_mod <- lm(year ~ funny + show_product_quickly +
+  patriotic + celebrity + danger + animals + use_sex,
+data = youtube
+)
+summary(simple_mod)
+
+#reg_intervals() that finds confidence intervals for models like lm() and glm() (as well as models from the survival package).
+set.seed(123)
+youtube_intervals <- reg_intervals(year ~ funny + show_product_quickly +
+  patriotic + celebrity + danger + animals + use_sex,
+data = youtube,
+type = "percentile",
+keep_reps = TRUE
+)
+youtube_intervals
+
+#If we had not set keep_reps = TRUE, we would only have the intervals themselves and could a plot such as this one.
+youtube_intervals %>%
+  mutate(
+    term = str_remove(term, "TRUE"),
+    term = fct_reorder(term, .estimate)
+  ) %>%
+  ggplot(aes(.estimate, term)) +
+  geom_vline(xintercept = 0, size = 1.5, lty = 2, color = "gray80") +
+  geom_errorbarh(aes(xmin = .lower, xmax = .upper),
+    size = 1.5, alpha = 0.5, color = "midnightblue"
+  ) +
+  geom_point(size = 3, color = "midnightblue") +
+  labs(
+    x = "Increase in year for each commercial characteristic",
+    y = NULL
+  )
 
 #ORDENACAO RESTRITA -> matriz de similaridade sp ~ ambientais
 #data(varespec)
