@@ -44,48 +44,92 @@ x %>%
 
 
 #https://juliasilge.com/blog/crop-yields/
-#Now let’s create a tidy version of the crop yields data, for the countries and crops I am interested in.
-tidy_yields <- key_crop_yields %>%
-  janitor::clean_names() %>%
-  pivot_longer(wheat_tonnes_per_hectare:bananas_tonnes_per_hectare,
-    names_to = "crop", values_to = "yield"      #escalas
-  ) %>%
-  mutate(crop = str_remove(crop, "_tonnes_per_hectare")) %>%
-  filter(
-    crop %in% c("wheat", "rice", "maize", "barley"),
-    entity %in% top_countries,
-    !is.na(yield)
-  )
-  
-  #Now let’s fit a linear model to each country-crop combination.
-library(tidymodels)
+#chamando dados
+dt500<- read.table(file = "clipboard", sep = "\t", header=TRUE)
+dt1m<- read.table(file = "clipboard", sep = "\t", header=TRUE)
+dt2m<- read.table(file = "clipboard", sep = "\t", header=TRUE)
+dt5m<- read.table(file = "clipboard", sep = "\t", header=TRUE) #com coluna Nsp
+lista<- read.table(file = "clipboard", sep = "\t", header=TRUE)
+str(lista) #4=UC_area 8=Nsp
+#sp<-lista[,9:109]
+#riq<-lista[,c(7,8)]
 
-tidy_lm <- tidy_yields %>%
-  nest(yields = c(year, yield)) %>%
-  mutate(model = map(yields, ~ lm(yield ~ year, data = .x)))
+library(tidyverse)
 
-#Next, let’s tidy() those models to get out the coefficients, and adjust the p-values for multiple comparisons while we’re at it.
-slopes <- tidy_lm %>%
+############################### Tidy the serial data
+
+dt500_td <- dt500 %>% 
+  pivot_longer(names_to = "year",     #conterá os nomes das colunas orig
+               values_to = "500m",   #conterá os valores
+               values_drop_na = TRUE,  #expliciar que há ausencias nos dados
+               cols = c(X1984:X2021))
+               #names_transform = list(year = as.integer)) 
+dt1m_td <- dt1m %>% 
+  pivot_longer(names_to = "year",     #conterá os nomes das colunas orig
+               values_to = "1000m",   #conterá os valores
+               values_drop_na = TRUE,  #expliciar que há ausencias nos dados
+               cols = c(X1984:X2021))
+               #names_transform = list(year = as.integer)) 
+dt2m_td <- dt2m %>% 
+  pivot_longer(names_to = "year",     #conterá os nomes das colunas orig
+               values_to = "2000m",   #conterá os valores
+               values_drop_na = TRUE,  #expliciar que há ausencias nos dados
+               cols = c(,X1984:X2021))
+               #names_transform = list(year = as.integer)) 
+dt5m_td <- dt5m %>% 
+  pivot_longer(names_to = "year",     #conterá os nomes das colunas orig
+               values_to = "5000m",   #conterá os valores
+               values_drop_na = TRUE,  #expliciar que há ausencias nos dados
+               cols = c(,X1984:X2021))
+               #names_transform = list(year = as.integer)) 
+data_td1<- left_join(dt500_td,dt1m_td) #depois combina
+data_td2<- left_join(data_td1,dt2m_td)
+data_td5<- left_join(data_td2,dt5m_td)
+str(data_td5)
+data_td5 <- data_td5 %>% mutate(year = as.integer(gsub("X", "", year))) #tira X dos numeros e torna dados numericos
+
+serialdt <- data_td5 %>% 
+  pivot_longer(names_to = "escalas",     #conterá os nomes das colunas orig
+               values_to = "ndvi",   #conterá os valores
+               cols = c("500m","1000m","2000m","5000m")) %>%
+		filter( escalas %in% c("500m","1000m","2000m","5000m"),
+			 !is.na(ndvi)) #filtro importante pro modelo a seguir
+edit(serialdt)
+
+###################################### Modelo Serial
+
+library(tidymodels)#boom de pacotes conflituosos
+library(modelr)#ou um ou outro
+
+serial_lm<- serialdt %>%
+  nest(yndvi = c(year, ndvi)) %>% #cria um tible pra cada conjunto de anos e ndvi
+  mutate(model = map(yndvi, ~ lm(ndvi ~ year, data = .x)))
+	#try() forca ignorar o erro, inviavibiliza criar o modelo
+	#http://adv-r.had.co.nz/Exceptions-Debugging.html #olhar tbm tryCatch()
+
+slopes <- serial_lm %>%
   mutate(coefs = map(model, tidy)) %>%
   unnest(coefs) %>%
-  filter(term == "year") %>%            #filtrar as sp
-  mutate(p.value = p.adjust(p.value))   #intercept das sp
+  filter(term == "year") %>%            
+  mutate(p.value = p.adjust(p.value))
 
-#Now we can visualize the results of this modeling, which is estimating how crop yields are changing around the world.
+################################### Gráficos
 library(ggrepel)
 slopes %>%
-  ggplot(aes(estimate, p.value, label = entity)) +  #riqueza OR intercept das sp
+  ggplot(aes(estimate, Nsp, label="")) +  
   geom_vline(
     xintercept = 0, lty = 2,
     size = 1.5, alpha = 0.7, color = "gray50"
   ) +
-  geom_point(aes(color = crop), alpha = 0.8, size = 2.5, show.legend = FALSE) +
+  geom_point(aes(color = escalas), alpha = 0.8, size = 2.5, show.legend = FALSE) +
   scale_y_log10() +
-  facet_wrap(~crop) +            #escalas
+  facet_wrap(~escalas) +            
   geom_text_repel(size = 3, family = "IBMPlexSans") +
   theme_light(base_family = "IBMPlexSans") +
   theme(strip.text = element_text(family = "IBMPlexSans-Bold", size = 12)) +
   labs(x = "increase in NDVI rate per year")
+
+##############################################################################
 
 
 #https://juliasilge.com/blog/superbowl-conf-int
