@@ -43,7 +43,10 @@ x %>%
 #by = c("a" = "b"). This will match variable a in table x to variable b in table y (2col que representam =var mas com nomes =!)
 
 
-#https://juliasilge.com/blog/crop-yields/
+###############################################################################################################
+
+######## https://juliasilge.com/blog/crop-yields/
+######## How mammals richness are changing|vary with changing NDVI
 #chamando dados
 dt500<- read.table(file = "clipboard", sep = "\t", header=TRUE)
 dt1m<- read.table(file = "clipboard", sep = "\t", header=TRUE)
@@ -129,11 +132,30 @@ slopes %>%
   theme(strip.text = element_text(family = "IBMPlexSans-Bold", size = 12)) +
   labs(x = "increase in NDVI rate per year")
 
+############## with mean NDVI
+
+
+
+
 ##############################################################################
 
+#########https://juliasilge.com/blog/bird-baths/
 
-#https://juliasilge.com/blog/superbowl-conf-int
-#model AREA por riqueza controlando por sp
+
+
+
+
+
+
+
+
+
+
+
+#####################################################################################################################
+
+########## https://juliasilge.com/blog/superbowl-conf-int
+########## model AREA por riqueza controlando por sp
 
 simple_mod <- lm(year ~ funny + show_product_quickly +
   patriotic + celebrity + danger + animals + use_sex,
