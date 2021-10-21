@@ -141,15 +141,117 @@ slopes %>%
 
 #########https://juliasilge.com/blog/bird-baths/
 
+data_tidy <- data %>% 
+  pivot_longer(names_to = "sp",     #conterá os nomes das colunas orig
+               values_to = "pres",   #conterá os valores
+               values_drop_na = TRUE  #expliciar que há ausencias nos dados
+               #cols = -local,         #tidy todas as colunas menos essa ou:
+               cols = c(sp1:spx))
+               
+	      
 
+#tipoUCN ou preaus medium monkey -> prob see d sp
+bird_parsed <-
+  bird_baths %>%
+  filter(
+    !is.na(urban_rural),	#tipoUCN ou preaus medium monkey
+    bird_type %in% top_birds
+  ) %>%
+  group_by(urban_rural, bird_type) %>%
+  summarise(bird_count = mean(bird_count), .groups = "drop")
 
+p1 <-
+  bird_parsed %>%
+  ggplot(aes(bird_count, bird_type)) +
+  geom_segment(
+    data = bird_parsed %>%
+      pivot_wider(
+        names_from = urban_rural,	#tipoUCN ou preaus medium monkey
+        values_from = bird_count
+      ),
+    aes(x = Rural, xend = Urban, y = bird_type, yend = bird_type),
+    alpha = 0.7, color = "gray70", size = 1.5
+  ) +
+  geom_point(aes(color = urban_rural), size = 3) +
+  scale_x_continuous(labels = scales::percent) +
+  labs(x = "Probability of seeing mammal", y = NULL, color = NULL)
 
+p1
 
+#Let’s build a model to predict this probability of seeing a bird using just these two predictors.
 
+bird_df <-
+  bird_baths %>%
+  filter(
+    !is.na(urban_rural),
+    bird_type %in% top_birds
+  ) %>%
+  mutate(bird_count = if_else(bird_count > 0, "bird", "no bird")) %>%
+  mutate_if(is.character, as.factor)
+  
 
+library(tidymodels)
 
+set.seed(123)
+bird_split <- initial_split(bird_df, strata = bird_count)
+bird_train <- training(bird_split)
+bird_test <- testing(bird_split)
 
+set.seed(234)
+bird_folds <- vfold_cv(bird_train, strata = bird_count)
+bird_folds
+  
+  glm_spec <- logistic_reg()
 
+#transform our nominal (factor or character, like urban_rural and bird_type) predictors to dummy or indicator variables.   
+  rec_basic <-
+  recipe(bird_count ~ urban_rural + bird_type, data = bird_train) %>%
+  step_dummy(all_nominal_predictors())
+
+wf_basic <- workflow(rec_basic, glm_spec)
+
+doParallel::registerDoParallel()
+ctrl_preds <- control_resamples(save_pred = TRUE)
+rs_basic <- fit_resamples(wf_basic, bird_folds, control = ctrl_preds)
+
+collect_metrics(rs_basic) #look
+
+augment(rs_basic) %>%
+  roc_curve(bird_count, .pred_bird) %>%
+  autoplot()
+
+#We can fit the model one time to the entire training set.
+
+bird_fit <- fit(wf_interact, bird_train)
+
+#we can predict the test set, perhaps to get out probabilities.
+
+predict(bird_fit, bird_test, type = "prob")
+
+...
+
+bird_preds <-
+  augment(bird_fit, new_bird_data) %>%
+  bind_cols(
+    predict(bird_fit, new_bird_data, type = "conf_int")
+  )
+
+bird_preds
+
+p2 <-
+  bird_preds %>%
+  ggplot(aes(.pred_bird, bird_type, color = urban_rural)) +
+  geom_errorbar(aes(
+    xmin = .pred_lower_bird,
+    xmax = .pred_upper_bird
+  ),
+  width = .2, size = 1.2, alpha = 0.5
+  ) +
+  geom_point(size = 2.5) +
+  scale_x_continuous(labels = scales::percent) +
+  labs(x = "Predicted probability of seeing bird", y = NULL, color = NULL)
+
+p2
 
 
 #####################################################################################################################
