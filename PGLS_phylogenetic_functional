@@ -11,13 +11,14 @@ str(lineu)
 head(lineu)
 
 #https://uc-r.github.io/hc_clustering
+#https://www.molecularecologist.com/2017/02/08/phylogenetic-trees-in-r-using-ggtree/
 
-agn1 <- agnes(lineu, metric = "euclidean", method="ward", stand = TRUE)
+agn1 <- agnes(lineu, metric = "euclidean", method="average", stand = TRUE) #mostrou cada nivel
 hcd<-as.dendrogram(agn1)
+plot(hcd, main="Main", cex = 2)
 
 par(mfrow=c(1,2))
 
-plot(hcd, main="Main")
 plot(cut(hcd, h=25)$upper, 
      main="Upper tree of cut at h=25")
 plot(cut(hcd, h=25)$lower[[2]], 
@@ -25,3 +26,8 @@ plot(cut(hcd, h=25)$lower[[2]],
 
 hc3 <- agnes(lineu, method = "ward")
 pltree(hc3, cex = 0.6, hang = -1, main = "Dendrogram of agnes")
+
+
+https://lukejharmon.github.io/ilhabela/instruction/2015/07/03/PGLS/
+https://lukejharmon.github.io/ilhabela/instruction/2015/07/03/PGLS/
+https://www.biorxiv.org/content/biorxiv/suppl/2017/07/24/167973.DC1/167973-1.pdf
