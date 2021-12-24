@@ -1,0 +1,27 @@
+############## DENDROGRAMA
+#dados sistemáticos pro dendrograma
+#lineu<- read.table(file = "clipboard", sep = "\t", header=TRUE)
+head(lineu)
+library(cluster)
+str(lineu)
+
+## To illustrate the note:
+#row.names(lineu) <- lineu$X
+#lineu<-lineu[,-1]
+head(lineu)
+
+#https://uc-r.github.io/hc_clustering
+
+agn1 <- agnes(lineu, metric = "euclidean", method="ward", stand = TRUE)
+hcd<-as.dendrogram(agn1)
+
+par(mfrow=c(1,2))
+
+plot(hcd, main="Main")
+plot(cut(hcd, h=25)$upper, 
+     main="Upper tree of cut at h=25")
+plot(cut(hcd, h=25)$lower[[2]], 
+     main="Second branch of lower tree with cut at h=25")
+
+hc3 <- agnes(lineu, method = "ward")
+pltree(hc3, cex = 0.6, hang = -1, main = "Dendrogram of agnes")
