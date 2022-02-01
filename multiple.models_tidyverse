@@ -5,14 +5,18 @@
 #https://moderndive.com/4-tidy.html
 #https://supervised-ml-course.netlify.app/
 
+
+
+##################################################################
+
 ######## TIDY DATA (transformando colunas excessivas de uma mesma variável em 2 coluna, 1 com os valores e outra com os nomes das colunas
 data_tidy <- data %>% 
   pivot_longer(names_to = "year",     #conterá os nomes das colunas orig
                values_to = "score",   #conterá os valores
                values_drop_na = TRUE  #expliciar que há ausencias nos dados
                cols = -local,         #tidy todas as colunas menos essa ou:
-               #cols = c(1984:2021),
-               names_transform = list(year = as.integer)) 
+               #cols = c(3:40),
+               names_transform = list(year = as.integer)) #assim os anos que são números, serão lidos como valores e não texto
   #Há tbm o inverso, se você coloca uma coluna para tipos de variáveis (ex:escalas) que deveriam ter cada uma sua própia coluna
   table2 %>%
     pivot_wider(names_from = escalas, values_from = count)
@@ -41,6 +45,182 @@ x %>%
 #A full join keeps all observations in x and y (add lines to do it).
 #by = NULL, uses all variables that appear in both tables, the so called natural join (default)
 #by = c("a" = "b"). This will match variable a in table x to variable b in table y (2col que representam =var mas com nomes =!)
+
+
+
+
+
+################
+# Plot Riqueza #
+################
+
+# Criar 3 objetos (variáveis espaciais, ambientais e dados das espécies)
+
+listaAL<- read.table(file = "clipboard", sep = "\t", header=TRUE)# row.names=1)
+
+spa<-listaAL[,2:3]
+env<- listaAL[,4:15]
+spe<- listaAL[,18:38]
+#str(tax)
+#spe<- tax[,-c(8,9,11,12,14)]
+library("vegan")
+
+str(spe) #conferindo dados
+head(spa) 
+str(env)  #podes conferir usando summary(), mas não é muito pratico qnd os dados tem muitas colunas
+ 
+plot(spa$X, spa$Y) #autor sugere ir add camadas em camadas, nesse caso, com dados espaciais, vemos só os pontos do rio
+
+plot(spa$X, spa$Y, type="n")    #type=n gera gráfico sem nada, pontos estão lá mas invisíveis, dai vais add caract dele nas funções abaixo
+#lines(spa$X, spa$Y, col="blue4", lwd=2)     #slwd= grossura da linha, eleciona todos juntos no script e executa (ctrlR), ou add + 
+text(spa$X, spa$Y, row.names(spa), col="red")   #add rotulo de cada variável
+
+
+# Add riqueza d sp.
+riqueza<-specnumber(spe) #função do pacote q calcula riqueza através dos dados brutos
+
+plot(spa$X, spa$Y, type="n", #ylim=c(20,120),    #função concatenar foi usada p ...
+xlab= "Coordenada X(km)", ylab= "Coordenada Y(km)", las=1) 
+#lines(spa$X, spa$Y, col="blue4") +
+points(spa$X, spa$Y, cex=riqueza,pch=16, col="gray")  #add círculos de riqueza (dividiu por 3.5 pois riqueza ficava muito grande no grafico)
+points(spa$X, spa$Y, cex=riqueza,pch=1) +   #add bordas, permite vermos as sobreposições dos círculos
+points(spa$X, spa$Y, cex=0.5, pch=16)   #add centros
+
+
+############################
+# Ordenação -> PCA da Caça #
+############################
+
+setwd("C:/R/Dout-modelar")
+spa<-read.csv("DoubsSpa.csv", row.names=1) 
+env<-read.csv("DoubsEnv.csv", row.names=1)
+spe<-read.csv("DoubsSpe.csv", row.names=1)
+str(env)
+hunt <- env[,9:12]
+str(hunt)
+edit(hunt)
+
+pca.hunt<-rda(hunt, scale=T) 
+#scale=T é oq vai padronizar (standardization) os dados, sem ele será usado a matriz de covariancia
+#só nao precisa dele qnd todas as variáveis tem a mesma unidade
+summary(pca.hunt)
+#'cumulative proportion' quanta explicação é fornecida por n Componentes Principais (PC2=olhar p 2 componentes, é até onde vamos usar, par a par)
+#'species scores' qnt informação cada variável tras p explica cada Componente Principal (+valor, +explica)
+# valores do componente (site scores) pode ser usado como variável
+
+biplot(pca.hunt)
+# grafico PC1 x PC2, cada linha vira um ponto
+# as variáveis fisico-químicas são expressas em linhas de explicação (inclinação indicada no 'species scores')
+# +prox =+correlacionadas, +perpendiculares=+independente das outras
+
+str(pca.hunt) #mostra resultado por dentro
+pca.hunt$CA$eig  #chama só os autovalores 'eigenvalue'
+pca.hunt$CA$v  #Valores das variáveis 'species scores'
+pca.hunt$CA$u  #Coordenadas das unidades amostrais 'site scores'
+#armazenar os 2 primeiros componentes (se quiser fazer... ex regressão)
+pc1<-pca.hunt$CA$u[,1]
+pc2<-pca.hunt$CA$u[,2]
+
+#exemplo tosco:
+riqueza<-specnumber(spe)
+plot(riqueza~pc1)
+abline(lm(riqueza~pc1), col = "blue")
+
+summary
+
+hunt1<- cbind(hunt, pc1)
+
+# correlation
+corr <- cor(hunt1, method = "spearman")
+corr
+
+data <- listaAL
+
+data<- cbind(listaAL, new_col=pc1)
+names(data)[names(data) == 'new_col'] <- 'Huntpc1'
+str(data)
+
+
+#########################################      
+## Autocorrelogramas de Mantel      
+      
+jac.spa<-mantel.correlog(spe.jac, spa.euc) #aqui a ordem importa, a nao ser q escreva por extenso, primeiro argumennto: d.eco= segundo: d.geo=
+jac.spa	#cria classes de distância (class.index= até 9m, até 25m, até 42m...), 
+#p cada classe indica o n presente nelas (qnd muito baixo o n não consegue calcular alto correlação)
+#há autocorrelação qnd Pr(mantel) menor q 0.05
+plot(jac.spa) #quadradinho preto autorrelação presente, branco ausente(não signif) ou não calculado
+#quando a linha vermelha cruza a linha dos resultado é o ponto ideal que não há autocorrelação espacial, seria a distância entre coletores q deves usar na sua coleta de dados
+
+
+###########################################################################
+##########################  GLMM com os taxons como variáveis aleatorias #
+			 ##################################################
+str(data)
+library("tidyverse")
+
+data_tidy <- data %>% 
+  pivot_longer(names_to = "taxon",     #conterá os nomes das colunas orig
+               values_to = "occu",   #conterá os valores
+               #values_drop_na = TRUE  #expliciar que há ausencias nos dados
+               cols = c(20:40))
+               #names_transform = list(year = as.integer)) 
+str(data_tidy)
+readr::write_csv(tibble::as_tibble(data_tidy), "data_tidy.csv")
+
+area <- data_tidy[,"arekm2"]
+hunt <- data_tidy[,"Huntpc1"]
+
+means <- c(apply(cbind(area,hunt), 2, mean, na.rm=T)) 
+sds <- c(apply(cbind(area,hunt), 2, sd, na.rm=T))
+
+# Scale covariates  => ATENCAO: ordem das medias= ordem usada na funcao acima
+areas <- (area - means[1]) / sds[1] #conferir para ter certeza de usar os valores certos
+hunts <- (hunt- means[2]) / sds[2]
+
+str(areas)
+
+datamm<-data_tidy
+datamm<- cbind(data_tidy, new_col=c(areas, hunts))
+str(datamm)
+names(datamm)[names(datamm) == c('new_col.arekm2','new_col.Huntpc1')] <- c('areas','hunts')
+#arehunpad<-decostand(areahun, method="standardize")
+
+###################
+# GLMM 
+
+library(lme4)	#p GLM
+library(car) 	#para Anova
+#covariates (fixed)
+#taxon(random)
+#occu (binomial)
+
+#variance +- stdDev: dado para tabela-> mostra quanto nosso dado varia
+# estimate +- SE: estimate>SE=signif. se negativo:valores sp2 menores q sp1
+
+
+n.occu=glmer(datamm$occu~1+(1|datamm$taxon),family=binomial) #glmer p binomial e poisson
+m.occu=glmer(datamm$occu~datamm$areas+datamm$hunts+(1|datamm$taxon),family=binomial)
+
+anova(n.occu,m.occu,test="Chisq")
+summary(m.occu)	#para dist binomial test = z, do summary
+#se usamos AIC e assumimos dist normal = precisamos usar anova e ir comparando diversas combinações
+#se usamos AIC e dist binomial/poisson = obtemos resultado no summary
+#no lugar de AIC= fazemos um resumo de todos de modelos com Anova q mostra Chisq
+#Anova = nao compara todas as categorias, nao divide A por B, é um resumo
+
+fixef(m.occu)
+ranef(m.occu) #chamar coeficientes das variáveis aleatorias (cada taxon)
+
+
+
+
+
+
+
+
+
+
+
 
 
 ###############################################################################################################
