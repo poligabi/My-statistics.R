@@ -4,7 +4,7 @@
 #### To do list:
 # 1 # GRID 10 x 10 km: Vetor > Investigar > grade vetorial : x=0.1000
 # 2 # Cruzamento espacial da camada alvo (pontos de coleta/grid de entrevistas) com as camadas dos dados ambientais
-# - Vetor > Gerenciar dados> Unir atributos por localização
+# - Vetor > Gerenciar dados> Unir atributos por localização (shape x shape, ex:gripIBGE x buffers)
 # - podes transferir os dados brutos, utilizando a opção “Tomar atributos da primeira feição localizada”, 
 # - ou transferir os dados sumarizados, média, soma, mínima, máxima ou mediana, utilizando a função “Tomar sumário de feições intersectantes”
 # 3 # Modelagem Hierarquica de occupação
@@ -12,6 +12,12 @@
 # - Polígonos em raster : complemento GDALtools "Raster > Conversion > Rasterizar (lembrar de salvar SRC)
 # - Raster> extração > cortador: camada mascara=polígono base(alagoas)
 # - Declividade: Raster > análise de terreno >“Camada com as elevações” =altitude; Fatorz=1
+# 5 # Obter a declividade média dos fragmentos
+# - Processamento (Processing) > Caixa de Ferramentas (Toolbox) > Busque:Zonal > Estatística Zonal (ou Zonal Statistics):
+# - Camada Raster (Raster Layer): Arquivo no formato matricial do qual queremos extrair alguma informação, pode ser um MDT
+# - Banda Raster (Raster Band): Indica qual é a banda da imagem. Como estamos trabalhando com MDT, só há uma;
+# - Prefixo da Coluna de Saída (Output column prefix): Caracteres que indicarão que a coluna obtida foi resultado da estatística zonal.
+# - Estatísticas para Cálculo: Quais estatísticas você quer? Alguns exemplos são Soma, Média, Mediana, Desvio Padrão, Máximo e Mínimo.
 # 5 # Mapa
 
 
