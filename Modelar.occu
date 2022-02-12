@@ -9,6 +9,8 @@
 # - ou transferir os dados sumarizados, média, soma, mínima, máxima ou mediana, utilizando a função “Tomar sumário de feições intersectantes”
 # 3 # Modelagem Hierarquica de occupação
 # 4 # Criar arquivos .tif ou .asc dos atributos ambientais do estado: declividade, densidade de humanos...
+# https://i0.wp.com/narceliodesa.com/wp-content/uploads/2014/02/calculando-a-declividade-do-terreno-caminho-01.png 
+# PRIMEIRO : SRC do projeto = SRc do raster = UTM24S wgs84 > daí calcula
 # - Polígonos em raster : complemento GDALtools "Raster > Conversion > Rasterizar (lembrar de salvar SRC)
 # - Raster> extração > cortador: camada mascara=polígono base(alagoas)
 # - Declividade: Raster > análise de terreno >“Camada com as elevações” =altitude; Fatorz=1
