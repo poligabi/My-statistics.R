@@ -185,6 +185,56 @@ str(datamm)
 names(datamm)[names(datamm) == c('new_col.arekm2','new_col.Huntpc1')] <- c('areas','hunts')
 #arehunpad<-decostand(areahun, method="standardize")
 
+slope.orig <- data_tidy[,"DeclivG"]
+m1991.orig <- data_tidy[,"ndvi1991.2"]
+m2021.orig<- data_tidy[,"ndvi2021.2"]
+area.orig<- data_tidy[,"logarea"]
+prot.orig <- data_tidy[,"Protection"]
+prec.orig <- data_tidy[,"prec"]
+human.density.orig <- data_tidy[,"Hdens"]
+nd1991.orig <- data_tidy[,"ndvi1991.5"]
+nd2021.orig<- data_tidy[,"ndvi2021.5"]
+neig15.orig <- data_tidy[,"neigop_pro1.5"]
+taxons<-data_tidy[,"taxon"]
+occus<-data_tidy[,"occu"]
+
+# Compute means and standard deviations
+means <- c(apply(cbind(slope.orig,m1991.orig,m2021.orig,area.orig,
+prot.orig,prec.orig,human.density.orig, nd1991.orig, nd2021.orig,
+neig15.orig), 2, mean, na.rm=T)) 
+sds <- c(apply(cbind(slope.orig,m1991.orig,m2021.orig,area.orig,
+prot.orig,prec.orig,human.density.orig, nd1991.orig, nd2021.orig,
+neig15.orig), 2, sd, na.rm=T))
+#na.rm=T esse codigo permite q a presença de NA não estrague o calculo 
+
+
+# Scale covariates  => ATENCAO: ordem das medias= ordem usada na funcao acima
+
+slope <- (slope.orig - means[1]) / sds[1] #conferir para ter certeza de usar os valores certos
+m291 <- (m1991.orig - means[2]) / sds[2]
+m221 <- (m2021.orig - means[3]) / sds[3]
+area <- (area.orig - means[4]) / sds[4]
+protec <- (prot.orig - means[5]) / sds[5]
+precip <- (prec.orig - means[6]) / sds[6]
+hdens <- (human.density.orig - means[7]) / sds[7]
+m591 <- (nd1991.orig - means[8]) / sds[8]
+m521 <- (nd2021.orig - means[9]) / sds[9]
+nprop <- (neig15.orig - means[10]) / sds[10]
+
+#arehun<-data.frame(area,hunt)
+#arehunpad<-decostand(areahun, method="standardize")
+
+
+datag<-data.frame(taxons, occus, 
+slope,m291,m221,area,protec,precip,hdens,m591,m521,nprop)
+str(datag)
+tb <- as_tibble(datag)
+tb <- rename(tb, slope=DeclivG,m291= ndvi1991.2,m221=ndvi2021.2,
+area=logarea,protec=Protection,precip=prec,hdens=Hdens,
+m591=ndvi1991.5,m521=ndvi2021.5,nprop= neigop_pro1.5)
+str(tb)
+
+
 ###################
 # GLMM 
 
@@ -201,6 +251,9 @@ library(car) 	#para Anova
 n.occu=glmer(datamm$occu~1+(1|datamm$taxon),family=binomial) #glmer p binomial e poisson
 m.occu=glmer(datamm$occu~datamm$areas+datamm$hunts+(1|datamm$taxon),family=binomial)
 
+n.occu=glmer(data_tidy$occu~1+(1|data_tidy$taxon),family=binomial) #glmer p binomial e poisson
+m.occu=glmer(tb$occu~tb$slope+tb$m291+tb$m221+tb$area+tb$protec+tb$precip+tb$hdens+tb$m591+tb$m521+tb$nprop+(1|tb$taxon),family=binomial)
+
 anova(n.occu,m.occu,test="Chisq")
 summary(m.occu)	#para dist binomial test = z, do summary
 #se usamos AIC e assumimos dist normal = precisamos usar anova e ir comparando diversas combinações
@@ -211,7 +264,7 @@ summary(m.occu)	#para dist binomial test = z, do summary
 fixef(m.occu)
 ranef(m.occu) #chamar coeficientes das variáveis aleatorias (cada taxon)
 
-
+condm<-as.data.frame(ranef(m.occu)) #$condsd  standard deviation condicional
 
 
 
