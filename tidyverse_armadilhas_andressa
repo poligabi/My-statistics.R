@@ -1,0 +1,293 @@
+
+### Starting with tidyverse Books:
+#https://r4ds.had.co.nz/data-import.html
+#https://www.tidymodels.org/start/models/
+#https://moderndive.com/4-tidy.html
+#https://supervised-ml-course.netlify.app/
+
+
+
+##################################################################
+
+######## TIDY DATA (transformando colunas excessivas de uma mesma variável em 2 coluna, 1 com os valores e outra com os nomes das colunas
+data_tidy <- data %>% 
+  pivot_longer(names_to = "year",     #conterá os nomes das colunas orig
+               values_to = "score",   #conterá os valores
+               values_drop_na = TRUE  #expliciar que há ausencias nos dados
+               cols = -local,         #tidy todas as colunas menos essa ou:
+               #cols = c(3:40),
+               names_transform = list(year = as.integer)) #assim os anos que são números, serão lidos como valores e não texto
+  #Há tbm o inverso, se você coloca uma coluna para tipos de variáveis (ex:escalas) que deveriam ter cada uma sua própia coluna
+  table2 %>%
+    pivot_wider(names_from = escalas, values_from = count)
+
+####### filtrando              
+drinks_smaller <- drinks %>% 
+  filter(country %in% c("USA", "China", "Italy", "Saudi Arabia")) %>% #filtra so esses países
+  select(-total_litres_of_pure_alcohol) %>%                           #seleciona todas col menos essa
+  rename(beer = beer_servings, spirit = spirit_servings, wine = wine_servings)      #renomeia pra nome mais facil
+
+###### To COMBINE the tidied versions of table4a and table4b into a single tibble dplyr::left_join()
+tidy4a <- table4a %>%  #primeiro tidied
+  pivot_longer(c(`1999`, `2000`), names_to = "year", values_to = "cases")
+tidy4b <- table4b %>% 
+  pivot_longer(c(`1999`, `2000`), names_to = "year", values_to = "population")
+left_join(tidy4a, tidy4b, by="local") #depois combina
+      #it preserves the original observations even when there isn’t a match. The left join should be your default join  
+  ####### RELATIONAL DATA (multiplas tabelas com dados relacionados ex: matrix de sp e de ambientais
+  #https://r4ds.had.co.nz/relational-data.html
+  ### KEY variavel que identifica a observação unica
+#An inner join keeps observations that appear in both tables
+x %>% 
+  inner_join(y, by = "key")
+#A left join keeps all observations in x(add NA on col y). Default pois add mantendo a quantidade de linhas original
+#A right join keeps all observations in y(add NA on col x).
+#A full join keeps all observations in x and y (add lines to do it).
+#by = NULL, uses all variables that appear in both tables, the so called natural join (default)
+#by = c("a" = "b"). This will match variable a in table x to variable b in table y (2col que representam =var mas com nomes =!)
+
+
+
+
+###############################################################################################################
+
+######## https://juliasilge.com/blog/crop-yields/
+######## How bettles abundance are vary with changing traps
+
+#chamando dados
+andressa <- read.table(file = "clipboard", sep = "\t", header=TRUE)
+str(andressa) #Variables: trap.plot	category 	species		relative.abundance
+
+
+library(tidyverse)
+
+###################################### Modelo Serial
+
+library(tidymodels)#boom de pacotes conflituosos
+library(modelr)#ou um ou outro
+
+
+top_countries <- land_use %>%
+  janitor::clean_names() %>%
+  filter(!is.na(code), entity != "World") %>%
+  group_by(entity) %>%
+  filter(year == max(year)) %>%
+  ungroup() %>%
+  slice_max(total_population_gapminder, n = 30) %>%
+  pull(entity)
+
+top_countries
+
+
+serial_lm<- andressa %>%
+  nest(yndvi = c(year, ndvi)) %>% #cria um tible pra cada conjunto de anos e ndvi
+  mutate(model = map(yndvi, ~ lm(ndvi ~ year, data = .x)))
+	#try() forca ignorar o erro, inviavibiliza criar o modelo
+	#http://adv-r.had.co.nz/Exceptions-Debugging.html #olhar tbm tryCatch()
+
+slopes <- serial_lm %>%
+  mutate(coefs = map(model, tidy)) %>%
+  unnest(coefs) %>%
+  filter(term == "year") %>%            
+  mutate(p.value = p.adjust(p.value))
+
+################################### Gráficos
+library(ggrepel)
+slopes %>%
+  ggplot(aes(estimate, Nsp, label="")) +  
+  geom_vline(
+    xintercept = 0, lty = 2,
+    size = 1.5, alpha = 0.7, color = "gray50"
+  ) +
+  geom_point(aes(color = escalas), alpha = 0.8, size = 2.5, show.legend = FALSE) +
+  scale_y_log10() +
+  facet_wrap(~escalas) +            
+  geom_text_repel(size = 3, family = "IBMPlexSans") +
+  theme_light(base_family = "IBMPlexSans") +
+  theme(strip.text = element_text(family = "IBMPlexSans-Bold", size = 12)) +
+  labs(x = "increase in NDVI rate per year")
+
+############## with mean NDVI
+
+
+
+
+##############################################################################
+
+#########https://juliasilge.com/blog/bird-baths/
+
+######## How bettles abundance are vary with changing traps
+
+andressa <- read.table(file = "clipboard", sep = "\t", header=TRUE)
+str(andressa) #Variables: trap.plot	category 	species		relative.abundance
+
+andressa_parsed <-
+  andressa %>%
+  group_by(trap.plot, species) %>%
+    summarise(relative.abund = mean(relative.abund), .groups = "drop")
+
+p1 <-
+  andressa_parsed %>%
+  ggplot(aes(relative.abund, species)) +
+  geom_segment(
+    data = andressa_parsed %>%
+      pivot_wider(
+        names_from = trap.plot,
+        values_from = relative.abund
+      ),
+    aes(x = PITFALL, xend = FIT, y = species, yend = species),
+    alpha = 0.7, color = "gray70", size = 1.5
+  ) +
+  geom_point(aes(color = trap.plot), size = 3) +
+  #scale_x_continuous(labels = scales::percent) +
+  labs(x = "Relative abundance of bettles", y = NULL, color = NULL)
+
+p1
+
+library(tidymodels)
+
+andressa_preds <-
+  andressa %>%
+  group_by(trap.plot, species) %>%
+    summarise(relative.abund = mean(relative.abundance), 
+	min.abund = min(relative.abundance), 
+	max.abund = max(relative.abundance), .groups = "drop")
+
+p2 <-
+  andressa_preds %>%
+  ggplot(aes(relative.abund, species, color = trap.plot)) +
+  geom_errorbar(aes(
+    xmin = min.abund,
+    xmax = max.abund
+  ),
+  width = .2, size = 1.2, alpha = 0.5
+  ) +
+  geom_point(size = 2.5) +
+  scale_x_continuous(labels = scales::percent) +
+  labs(x = "Relative abundance of bettles", y = NULL, color = NULL)
+
+p2
+
+
+#####################################################################################################################
+
+########## https://juliasilge.com/blog/superbowl-conf-int
+########## model AREA por riqueza controlando por sp
+
+simple_mod <- lm(year ~ funny + show_product_quickly +
+  patriotic + celebrity + danger + animals + use_sex,
+data = youtube
+)
+summary(simple_mod)
+
+#reg_intervals() that finds confidence intervals for models like lm() and glm() (as well as models from the survival package).
+set.seed(123)
+youtube_intervals <- reg_intervals(year ~ funny + show_product_quickly +
+  patriotic + celebrity + danger + animals + use_sex,
+data = youtube,
+type = "percentile",
+keep_reps = TRUE
+)
+youtube_intervals
+
+#If we had not set keep_reps = TRUE, we would only have the intervals themselves and could a plot such as this one.
+youtube_intervals %>%
+  mutate(
+    term = str_remove(term, "TRUE"),
+    term = fct_reorder(term, .estimate)
+  ) %>%
+  ggplot(aes(.estimate, term)) +
+  geom_vline(xintercept = 0, size = 1.5, lty = 2, color = "gray80") +
+  geom_errorbarh(aes(xmin = .lower, xmax = .upper),
+    size = 1.5, alpha = 0.5, color = "midnightblue"
+  ) +
+  geom_point(size = 3, color = "midnightblue") +
+  labs(
+    x = "Increase in year for each commercial characteristic",
+    y = NULL
+  )
+
+#ORDENACAO RESTRITA -> matriz de similaridade sp ~ ambientais
+#data(varespec)
+data(varechem)
+## Common but bad way: use all variables you happen to have in your
+## environmental data matrix
+vare.cca <- cca(varespec, varechem)
+vare.cca
+plot(vare.cca)
+## Formula interface and a better model
+vare.cca <- cca(varespec ~ Al + P*(K + Baresoil), data=varechem)
+vare.cca
+plot(vare.cca)
+## `Partialling out' and `negative components of variance'
+cca(varespec ~ Ca, varechem)
+cca(varespec ~ Ca + Condition(pH), varechem)
+## RDA
+data(dune)
+data(dune.env)
+dune.Manure <- rda(dune ~ Manure, dune.env)
+plot(dune.Manure) 
+
+#metadata do plot https://rdrr.io/cran/MVar.pt/man/Plot.CCA.html
+
+
+#### Plotting multiple response variables in ggplot2 ###
+
+#https://www.jscarlton.net/post/2017-04-05multipledotsggplot/
+
+#set up your data so that each model run is a different observation (i.e., row), like this:
+predictor   model   odds
+pred_a      1       2.23
+pred_a      2       1.32
+pred_a      3       1.23
+pred_b      1       0.82
+pred_b      2       0.98
+pred_c      3       0.98
+
+library(tidyverse)
+#create a fake dataset. 
+df <- read_csv(
+  "predictor, response, odds, CIHigh, CILow
+  Predictor A, response 1, 2.23, 0.70, 6.60
+  Predictor A, response 2, 1.32, 1.02, 1.70
+  Predictor A, response 3, 1.23, 0.97, 1.56
+  Predictor B, response 1, 0.82, 0.65, 1.04
+  Predictor B, response 2, 0.98, 0.96, 1.00
+  Predictor B, response 3, 0.98, 0.86, 1.11
+  Predictor C, response 1, 0.66, 0.50, 0.87
+  Predictor C, response 2, 0.59, 0.36, 0.98
+  Predictor C, response 3, 0.98, 0.86, 1.11"
+)
+
+#A- plot multiple graphs NEXT TO EACH OTHER for easy comparison.
+#facet_wrap to create the plots and coord_trans to transform the x axis to a log scale
+ggplot(df, aes(x = odds, y = predictor)) +
+  geom_vline(aes(xintercept = 1), size = .25, linetype = "dashed") +
+  geom_errorbarh(aes(xmax = CIHigh, xmin = CILow), size = .5, height = .1, color = "gray50") +
+  geom_point(size = 4, color = "blue") +
+  facet_wrap(~response) +
+  scale_x_continuous(breaks = seq(0,7,1) ) +
+  coord_trans(x = "log10") +
+  theme_bw() +
+  theme(panel.grid.minor = element_blank())
+
+
+#B- plot ALL OF THE NODELS ON 1 graph and use color and position_nudge to differentiate between them
+#using filter to plot one set of points and CIs at a time and manually adjusting their height using an adjustment variable and position_nudge()
+
+adj = .2 # This is used in position_nudge to move the dots
+
+ggplot(df, aes(x = odds, y = predictor, color = response)) +
+  geom_vline(aes(xintercept = 1), size = .25, linetype = "dashed") +
+  geom_errorbarh(data = filter(df, response== "response 1"), aes(xmax = CIHigh, xmin = CILow), size = .5, height = .1, color = "gray50", position = position_nudge(y = adj)) +
+  geom_point(data = filter(df, response== "response 1"), size = 4, position = position_nudge(y = adj)) +
+  geom_errorbarh(data = filter(df, response== "response 2"), aes(xmax = CIHigh, xmin = CILow), size = .5, height = .1, color = "gray50") +
+  geom_point(data = filter(df, response== "response 2"), size = 4) +
+  geom_errorbarh(data = filter(df, response== "response 3"), aes(xmax = CIHigh, xmin = CILow), size = .5, height = .1, color = "gray50", position = position_nudge(y = - adj)) +
+  geom_point(data = filter(df, response== "response 3"), size = 4, position = position_nudge(y = - adj)) +
+  scale_x_continuous(breaks = seq(0,7,1) ) +
+  coord_trans(x = "log10") +
+  theme_bw() +
+  theme(panel.grid.minor = element_blank())
+  
+  
