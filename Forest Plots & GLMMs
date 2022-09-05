@@ -1,0 +1,373 @@
+#################################################
+#  GLMM com os taxons como variáveis aleatorias #
+#################################################
+
+str(data)
+library("tidyverse")
+
+data_tidy <- listaAL %>% 
+  pivot_longer(names_to = "taxon",     #conterá os nomes das colunas orig
+               values_to = "occu",   #conterá os valores
+               #values_drop_na = TRUE  #expliciar que há ausencias nos dados
+               cols = c(25:44))
+               #names_transform = list(year = as.integer)) 
+str(data_tidy)
+readr::write_csv(tibble::as_tibble(data_tidy), "data_tidy.csv")
+
+summary(data_tidy3)
+m.occule=glmer(data_tidy3$occu~data_tidy3$locom+data_tidy3$especif+(1|data_tidy3$taxon),family=binomial)
+m.occub=glmer(data_tidy3$occu~data_tidy3$biomassa+(1|data_tidy3$taxon),family=binomial)
+
+
+slope.orig <- data_tidy[,"DeclivG"]
+m1991.orig <- data_tidy[,"ndvi1991.2"]
+m2021.orig<- data_tidy[,"ndvi2021.2"]
+area.orig<- data_tidy[,"logarea"]
+prot.orig <- data_tidy[,"Protection"]
+prec.orig <- data_tidy[,"prec"]
+human.density.orig <- data_tidy[,"Hdens"]
+nd1991.orig <- data_tidy[,"ndvi1991.5"]
+nd2021.orig<- data_tidy[,"ndvi2021.5"]
+neig15.orig <- data_tidy[,"neigop_pro1.5"]
+taxons<-data_tidy[,"taxon"]
+occus<-data_tidy[,"occu"]
+vi1991.orig <- data_tidy[,"ndvi1991.1"]
+vi2021.orig<- data_tidy[,"ndvi2021.1"]
+hunt.orig<- data_tidy[,"hunt.percep"]
+cut.orig<- data_tidy[,"cut.percep"]
+
+
+# Compute means and standard deviations
+means <- c(apply(cbind(slope.orig,m1991.orig,m2021.orig,area.orig,
+prot.orig,prec.orig,human.density.orig, nd1991.orig, nd2021.orig,
+neig15.orig, vi1991.orig, vi2021.orig,hunt.orig,cut.orig), 2, mean, na.rm=T)) 
+sds <- c(apply(cbind(slope.orig,m1991.orig,m2021.orig,area.orig,
+prot.orig,prec.orig,human.density.orig, nd1991.orig, nd2021.orig,
+neig15.orig,vi1991.orig, vi2021.orig,hunt.orig,cut.orig), 2, sd, na.rm=T))
+#na.rm=T esse codigo permite q a presença de NA não estrague o calculo 
+
+
+# Scale covariates  => ATENCAO: ordem das medias= ordem usada na funcao acima
+
+slope <- (slope.orig - means[1]) / sds[1] #conferir para ter certeza de usar os valores certos
+m291 <- (m1991.orig - means[2]) / sds[2]
+m221 <- (m2021.orig - means[3]) / sds[3]
+area <- (area.orig - means[4]) / sds[4]
+protec <- (prot.orig - means[5]) / sds[5]
+precip <- (prec.orig - means[6]) / sds[6]
+hdens <- (human.density.orig - means[7]) / sds[7]
+m591 <- (nd1991.orig - means[8]) / sds[8]
+m521 <- (nd2021.orig - means[9]) / sds[9]
+nprop <- (neig15.orig - means[10]) / sds[10]
+m191 <- (vi1991.orig - means[11]) / sds[11]
+m121 <- (vi2021.orig - means[12]) / sds[12]
+hunt <- (hunt.orig - means[13]) / sds[13]
+logg <- (cut.orig - means[14]) / sds[14]
+
+#arehun<-data.frame(area,hunt)
+#arehunpad<-decostand(areahun, method="standardize")
+
+
+datag<-data.frame(taxons, occus, 
+slope,m291,m221,area,protec,precip,hdens,m591,m521,nprop,m191,m121,hunt,logg)
+str(datag)
+tb <- as_tibble(datag)
+tb <- rename(tb, slope=DeclivG,m291= ndvi1991.2,m221=ndvi2021.2,
+area=logarea,protec=Protection,precip=prec,hdens=Hdens,
+m591=ndvi1991.5,m521=ndvi2021.5,nprop= neigop_pro1.5,
+m191=ndvi1991.1,m121=ndvi2021.1,hunt=hunt.percep,logg=cut.percep)
+str(tb)
+#arehunpad<-decostand(areahun, method="standardize")
+
+###################
+# GLMM 
+
+library(lme4)	#p GLM
+library(car) 	#para Anova
+#covariates (fixed)
+#taxon(random)
+#occu (binomial)
+
+#variance +- stdDev: dado para tabela-> mostra quanto nosso dado varia
+# estimate +- SE: estimate>SE=signif. se negativo:valores sp2 menores q sp1
+attach(tb)
+
+n.occu=glmer(data_tidy$occu~1+(1|data_tidy$taxon),family=binomial) #glmer p binomial e poisson
+m.occu1=glmer(tb$occu~tb$slope+tb$area+tb$protec+tb$precip+tb$hdens+tb$nprop+tb$m191+tb$m121+tb$hunt+tb$logg+(1|tb$taxon),family=binomial)
+m.occu2=glmer(tb$occu~tb$slope+tb$m291+tb$m221+tb$area+tb$protec+tb$precip+tb$hdens+tb$nprop+tb$hunt+tb$logg+(1|tb$taxon),family=binomial)
+m.occu5=glmer(tb$occu~tb$slope+tb$area+tb$protec+tb$precip+tb$hdens+tb$m591+tb$m521+tb$nprop+tb$hunt+tb$logg+(1|tb$taxon),family=binomial)
+m.occu52=glmer(tb$occu~tb$slope+tb$area+tb$protec+tb$precip+tb$hdens+tb$m521+tb$nprop+(1|tb$taxon),family=binomial)
+m.occu59=glmer(tb$occu~tb$slope+tb$area+tb$protec+tb$precip+tb$hdens+tb$m591+tb$nprop+(1|tb$taxon),family=binomial)
+m.occuh=glmer(tb$occu~tb$slope+tb$area+tb$protec+tb$precip+tb$hdens+tb$nprop+tb$hunt+tb$logg+(1|tb$taxon),family=binomial)
+
+
+
+summary(m.occule)
+
+anova(n.occu,m.occu1,m.occu2,m.occu5,m.occuh,test="Chisq")
+summary(m.occu1)	#para dist binomial test = z, do summary
+summary(m.occu2)
+summary(m.occuh)
+#se usamos AIC e assumimos dist normal = precisamos usar anova e ir comparando diversas combinações
+#se usamos AIC e dist binomial/poisson = obtemos resultado no summary
+#no lugar de AIC= fazemos um resumo de todos de modelos com Anova q mostra Chisq
+#Anova = nao compara todas as categorias, nao divide A por B, é um resumo
+
+fixef(m.occu5)
+ranef(m.occu5) #chamar coeficientes das variáveis aleatorias (cada taxon)
+condm<-as.data.frame(ranef(m.occuh)) #$condsd
+
+#https://stackoverflow.com/questions/40476353/predicting-probabilities-in-r-with-mixed-effects-model
+newdd <- unique(tb[,c("taxon")])
+newdd$SUBJECTIDf <- NA  ## need to have SUBJECTIDf in the data frame ...
+t1 <- predict(m.occuh,newdata=newdd,type="response",
+              re.form=~(1|taxon))
+newdd <- data.frame(newdd[,c("cat1","cat2")],pred=t1)
+
+############################Forest Plot Random Effects (taxons)##############
+library(ggplot2)
+inter<- read.table(file = "clipboard", sep = "\t", header=TRUE)#, row.names=1)
+str(inter)
+  ggplot(data=inter, aes(x=condval, y=reorder(taxon,condval))) +
+  geom_vline(xintercept = 0, size = 1.5, lty = 2, color = "gray80") +
+	geom_errorbarh(aes(xmin = inter$condval-inter$condsd, xmax = inter$condval+inter$condsd),
+    size = 1.2, alpha = 0.5, color = "midnightblue", height = 0
+  ) +
+  geom_point(size = inter$logpeso, color = "midnightblue") +
+  labs(
+    x = "intercept", #"Increase in occupancy for each taxon",
+    y = NULL) +
+theme(panel.border = element_blank(),
+	axis.text.y = element_text(face = "italic"),
+        panel.background = element_blank(),
+        panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank())
+
+########### Estimate x Number of fragm occu
+str(inter)
+  ggplot(data=inter, aes(x=n.frag.occu, y=condval), colour=taxon) +
+  geom_vline(xintercept = 0, size = 1.5, lty = 2, color = "gray80") +
+	 geom_pointrange(aes(ymin = inter$condval-inter$condsd, ymax = inter$condval+inter$condsd), 
+                    position=position_jitter(width=0.5),size=0.3 ,color = "midnightblue"
+                    )+
+  #geom_errorbar(aes(ymin = inter$condval-inter$condsd, ymax = inter$condval+inter$condsd),
+   # size = 0.5, widht=1, position=position_jitter(w=0.25),alpha = 0.5)+#, color = "midnightblue", , width = 0.2
+  #) +
+  #geom_point(size = 1,position=position_jitter(w=0.25))+#, color = "midnightblue") +
+  labs(
+    x = "Number of fragments occupied", #"Increase in occupancy for each taxon",
+    y = NULL) +
+theme(panel.border = element_blank(),
+	axis.text.y = element_text(face = "italic"),
+        panel.background = element_blank(),
+        panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank())
+
+#####################Multinomial logit model ###https://www.princeton.edu/~otorres/LogitR101.pdf
+# Loading the required packages
+#library(foreign)
+library(nnet)
+library(stargazer)
+# Getting the sample data from UCLA
+
+capuchin <- data[,"Monkeys"]
+mydata = data.frame(capuchin,slope,area,elev,protec,precip,
+hdens,hunt, logg, nprop)
+# Checking the output (dependent) variable
+table(mydata$capuchin)
+ low middle high
+ 47 95 58 
+
+# Running the multinomial logit model using the multinom() function
+library(nnet)
+mydata$capuchin <- as.factor(mydata$capuchin)
+multi1 = multinom(capuchin ~ slope+area+elev+protec+precip+hdens+
+hunt+ logg+ nprop, data=mydata)
+summary(multi1)
+
+# The multinom() function does not provide p-values, you can get significance of the
+coefficients using the stargazer() function from the package –stargazer.
+# The model will be saved in the working directory under the name ‘multi1.htm’ which you can
+open with Word or any other word processor.
+library(stargazer)
+stargazer(multi1, type="html", out="multi1.htm")
+
+# Relative risk ratios allow an easier interpretation of the logit coefficients. They are the
+exponentiated value of the logit coefficients.
+multi1.rrr = exp(coef(multi1))
+multi1.rrr
+library(stargazer)
+stargazer(multi1, type="html", coef=list(multi1.rrr), p.auto=FALSE, out="multi1rrr.htm")
+
+
+modelsvm_tuned1 <- svm(quality ~ density + chlorides + volatile.acidity + alcohol, data = wine_train, gamma = 1, cost = 5)
+wine_test_svmpredict1 <- predict(modelsvm_tuned1,wine_test,na.action = na.pass, type="class")
+# Cross tabs or confusion matrix
+caret::confusionMatrix(as.factor(wine_test_svmpredict1),as.factor(wine_test$quality))
+#https://rstudio-pubs-static.s3.amazonaws.com/237448_25448d1a60d24e599e9531bf76c39f20.html
+
+library(readr) #for reading the csv file
+library(dplyr) #for data manipulation
+library(jtools) #for nice table model output
+summ(lm1,confint = TRUE, digits = 3, vifs = TRUE) # add vif to see if variance inflation factor is greater than 2
+
+                         "Average school yrs"))
+
+#####################Forest Plot Fixed Effects #################
+
+# Load libraries #https://rpubs.com/mbounthavong/forest_plots_r
+library(gridExtra)
+library(ggplot2)
+
+dvar<- read.table(file = "clipboard", sep = "\t", header=TRUE)# row.names=1)
+
+ 
+plot2 <- ggplot(dvar, aes(y=Index, x = Estimate)) +
+  geom_point(shape = 18, size = 5) +  
+  geom_errorbarh(aes(xmin = Estimate-se, xmax = Estimate+se), height = 0.01) +
+  geom_vline(xintercept = 0, color = "red", linetype = "dashed", cex = 1, alpha = 0.5) +
+  scale_y_continuous(name = "", breaks=1:8, labels = dvar$label, trans = "reverse") +
+  xlab("Estimate") + 
+  ylab(" ") + 
+  theme_bw() +
+  theme(panel.border = element_blank(),
+        panel.background = element_blank(),
+        panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank(), 
+        axis.line = element_line(colour = "black"),
+        axis.text.y = element_text(size = 11, colour = "black"),
+        axis.text.x.bottom = element_text(size = 11, colour = "black"),
+        axis.title.x = element_text(size = 11, colour = "black"))
+plot1
+
+## Create the table-base pallete
+table_base <- ggplot(dvar, aes(y=label)) +
+  ylab(NULL) + xlab("  ") + 
+  theme(plot.title = element_text(hjust = 0.5, size=11), 
+        axis.text.x = element_text(color="white", hjust = -3, size = 20), ## This is used to help with alignment
+        axis.line = element_blank(),
+        axis.text.y = element_blank(), 
+        axis.ticks = element_blank(),
+        axis.title.y = element_blank(), 
+        legend.position = "none",
+        panel.background = element_blank(), 
+        panel.border = element_blank(), 
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(), 
+        plot.background = element_blank())
+
+## Odds ratio point estimate table
+tab1 <- table_base + 
+  labs(title = "space") +
+  geom_text(aes(y = rev(Index), x = 1, label = sprintf("%0.1f", round(zvalue, digits = 1))), size = 4) + ## decimal places
+  ggtitle("Z value")+
+	theme(plot.title = element_text(size = 10))
+
+## 95% CI table
+tab2 <- table_base +
+  geom_text(aes(y = rev(Index), x = 1, label = pvalue), size = 4) + 
+  ggtitle("p-value")+
+	theme(plot.title = element_text(size = 10))
+
+
+## Merge tables with plot
+lay <-  matrix(c(1,1,1,1,1,1,1,1,1,1,2,3,3), nrow = 1)
+grid.arrange(plot2, tab1, tab2, layout_matrix = lay)
+
+
+http://rcompanion.org/rcompanion/e_06.html
+
+
+
+https://stackoverflow.com/questions/53255211/plotting-random-effects-for-a-binomial-glmer-in-ggplot
+https://www.rdocumentation.org/packages/sjPlot/versions/2.4.1/topics/sjp.glmer
+library(lme4)
+library(sjmisc)
+library(sjlabelled)
+# create binary response
+sleepstudy$Reaction.dicho <- dicho(sleepstudy$Reaction, dich.by = "median")
+# fit model
+fit <- glmer(Reaction.dicho ~ Days + (Days | Subject),
+             data = sleepstudy, family = binomial("logit"))
+
+# simple plot
+sjp.glmer(fit)
+
+# sort by predictor Days
+sjp.glmer(fit, sort.est = "Days")
+
+# }
+# NOT RUN {
+data(efc)
+# create binary response
+efc$hi_qol <- dicho(efc$quol_5)
+# prepare group variable
+efc$grp = as.factor(efc$e15relat)
+levels(x = efc$grp) <- get_labels(efc$e15relat)
+# data frame for fitted model
+mydf <- data.frame(hi_qol = to_factor(efc$hi_qol),
+                   sex = to_factor(efc$c161sex),
+                   education = to_factor(efc$c172code),
+                   c12hour = efc$c12hour,
+                   neg_c_7 = efc$neg_c_7,
+                   grp = efc$grp)
+
+# fit glmer, with categorical predictor with more than 2 levels
+fit <- glmer(hi_qol ~ sex + education + c12hour + neg_c_7 + (1|grp),
+             data = mydf, family = binomial("logit"))
+
+# plot and sort fixed effects, axis labels automatically retrieved
+sjp.glmer(fit, type = "fe", sort.est = TRUE)
+
+# plot probability curves (predicted probabilities)
+# for each covariate, grouped by random intercepts
+# in integrated plots, emphasizing groups 1 and 4
+sjp.glmer(fit, type = "ri.slope", emph.grp = c(1, 4), facet.grid = FALSE)
+
+# plot predicted probabilities for response,
+# non faceted, with ci
+sjp.glmer(fit, type = "pred.fe", vars = c("neg_c_7", "education"),
+          show.ci = TRUE, facet.grid = FALSE)
+
+# predictions by gender and education
+sjp.glmer(fit, type = "pred.fe", vars = c("neg_c_7", "sex", "education"))
+# }
+
+doarea<- read.table(file = "clipboard", sep = "\t", header=TRUE)# row.names=1)
+str(doarea)
+ggplot()) +
+	geom_bar(data=doarea, aes(x=occu, y=reorder(Genus,occu)), position="stack",stat = "identity")
+	geom_bar(data=doarea, aes(x=totarea/800, y=reorder(Genus,occu)), position = "identity",color = 'black')
+scale_x_continuous(
+    name = "Probability of occupancy",  
+    # Add a second axis and specify its features
+    sec.axis = sec_axis( trans=~.*800, name="Total area occupied (km²)")
+  ) 
+
+  geom_vline(xintercept = 0, size = 1.5, lty = 2, color = "gray80") +
+	geom_errorbarh(aes(xmin = inter$condval-inter$condsd, xmax = inter$condval+inter$condsd),
+    size = 1.2, alpha = 0.5, color = "midnightblue", height = 0
+  ) +
+  geom_point(size = inter$logpeso, color = "midnightblue") +
+ 
+theme(panel.border = element_blank(),
+	axis.text.y = element_text(face = "italic"),
+        panel.background = element_blank(),
+        panel.grid.major = element_blank(), 
+        panel.grid.minor = element_blank())
+
+
+
+# bar is created with the help of
+# grom_bar() and ggplot() function
+ggp <- ggplot(data, aes(x_axis, y_axis)) +   
+  geom_bar(stat = "identity")
+ 
+# complete graph get flipped with the
+# help of coord_flip() function
+ggp +  coord_flip()
+
+# Start with a usual ggplot2 call:
+ggplot(doarea, aes(x=day, y=temperature)) +
+  
+  # Custom the Y scales:
