@@ -1,10 +1,4 @@
 
-### Starting with tidyverse Books:
-#https://r4ds.had.co.nz/data-import.html
-#https://www.tidymodels.org/start/models/
-#https://moderndive.com/4-tidy.html
-#https://supervised-ml-course.netlify.app/
-
 #######https://www.sharpsightlabs.com/blog/mutate-in-r/
 select() selects columns from data
 filter() subsets rows of data
@@ -134,8 +128,8 @@ p3 <-
     #aes(x = PITFALL, xend = FIT, y = species, yend = species),
     #alpha = 0.7, color = "gray70", size = 1.5
   #) +
-geom_point(aes(shape= trap.plot), size=4) +  
-geom_point(aes(color = ABC), size = 2) +
+geom_point(aes(shape= trap.plot), size=4) +    #https://ggplot2.tidyverse.org/reference/geom_point.html
+geom_point(aes(color = ABC), size = 2) +	#https://ggplot2.tidyverse.org/reference/layer.html
 	
   #scale_x_continuous(labels = scales::percent) +
   labs(x = "Relative abundance of bettles ar BR319", y = NULL, color = NULL)+
